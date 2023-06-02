@@ -4,20 +4,22 @@
 
 ## Introduction
 
-Welcome to the Backup Scripts repository! This project aims to provide a set of shell scripts that facilitate the backup process of a folder structure using two powerful tools: Restic and Rclone.
+Welcome to the Backup Scripts Repository! This small private project aims to provide a set of shell scripts to facilitate the backup process of a folder structure using two powerful tools: Restic and Rclone.
 
-Restic is an efficient and secure backup program that deduplicates, compresses, and encrypts data. It supports various backends, allowing backups to be stored locally or in the cloud. Rclone, on the other hand, is a command-line program that enables syncing and transferring of files between different storage providers, such as cloud storage services, FTP servers, and more.
+Restic is an open source backup utility to protect your data by safely storing and restoring backups. It is easy to use, efficient and reliable and offers a straightforward and flexible solution for backing up and restoring data. With Restic, you can manage your backup process, encrypt your data, store it and ensure the security and accessibility of your important files.
 
-Only basic command line knowledge is required for use and installation. Restic and Rclone are installed exclusively via the official docker containers of the respective projects. The scripts are not connected to Restic or Rclone. No liability is assumed for the use or loss of data.
+Rclone is a versatile command line programme that allows you to synchronise files and directories between different storage locations. Its main purpose is to provide a unified interface for managing and transferring data between different storage platforms such as Google Drive, Dropbox, Amazon S3 or your own remote server. Rclone provides the ability to copy, move and synchronise files, as well as perform advanced operations such as encryption, deduplication and bandwidth control, making it a powerful tool for managing cloud storage.
 
-The combination of Restic and Rclone offers a flexible and robust solution for performing backups, ensuring the safety and integrity of your data. The scripts provided in this repository simplify the configuration and execution of backup operations, making it easier for you to set up and maintain a reliable backup system.
+The combination of Restic and Rclone provides a flexible and robust solution for performing backups that ensures the security and integrity of your data. The scripts provided in this repository simplify the configuration and execution of backup operations and make it easy for you to set up and maintain a reliable backup system.
+
+Only basic command line knowledge is required for use and installation. Restic and Rclone are installed exclusively via the official Docker containers of the respective projects. The automation of the individually created backup jobs can be realised via cron jobs or similar. The scripts are not connected to Restic or Rclone. No liability is assumed for the use or loss of data.
 
 ### Features
-Local and Remote Backups: The scripts support both local and remote backup scenarios. You can choose to back up your data to a local directory or utilize various cloud storage providers supported by Rclone.
-Incremental Backups: Restic performs efficient incremental backups by identifying changes in files, minimizing storage requirements and network bandwidth usage.
-Encryption and Security: Restic encrypts your data before it is stored, ensuring privacy and security. The encryption key is securely stored and managed by Restic.
-Configurable Retention Policies: You can customize the retention policies to specify how long backups should be kept, allowing you to balance storage usage and backup history.
-Notification Support: The scripts can be configured to send notifications via email or other methods upon completion or failure of backup operations, keeping you informed about the backup status.
+- Local and remote backups: The scripts support both local and remote backup scenarios. You can choose to back up your data only to a local directory or use different cloud storage providers supported by Rclone.
+- Incremental backups: Restic performs efficient incremental backups by identifying changes in files, minimising storage requirements and network bandwidth usage.
+- Encryption and security: Restic encrypts your data before it is stored, ensuring privacy and security. If desired, Rclone supports further encryption on the remote system.
+- Configurable retention policies: You can customise retention policies to determine how long backups should be kept, balancing storage usage with backup history.
+- Notification support: Scripts are provided with support for Unraid's notification system. Deviating solutions must be implemented by the user.
 
 ## Table of Contents
 
