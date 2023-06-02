@@ -1,18 +1,30 @@
-# BackupScripts
+# BackupScripts with Restic and Rclone
 
 # Project Documentation
 
 ## Introduction
 
-This document serves as the documentation for the GitHub project **[Project Name]**. It provides an overview of the project, installation instructions, usage guidelines, and additional information to help users understand and contribute to the project effectively.
+Welcome to the Backup Scripts repository! This project aims to provide a set of shell scripts that facilitate the backup process of a folder structure using two powerful tools: Restic and Rclone.
+
+Restic is an efficient and secure backup program that deduplicates, compresses, and encrypts data. It supports various backends, allowing backups to be stored locally or in the cloud. Rclone, on the other hand, is a command-line program that enables syncing and transferring of files between different storage providers, such as cloud storage services, FTP servers, and more.
+
+Only basic command line knowledge is required for use and installation. Restic and Rclone are installed exclusively via the official docker containers of the respective projects. The scripts are not connected to Restic or Rclone. No liability is assumed for the use or loss of data.
+
+The combination of Restic and Rclone offers a flexible and robust solution for performing backups, ensuring the safety and integrity of your data. The scripts provided in this repository simplify the configuration and execution of backup operations, making it easier for you to set up and maintain a reliable backup system.
+
+### Features
+Local and Remote Backups: The scripts support both local and remote backup scenarios. You can choose to back up your data to a local directory or utilize various cloud storage providers supported by Rclone.
+Incremental Backups: Restic performs efficient incremental backups by identifying changes in files, minimizing storage requirements and network bandwidth usage.
+Encryption and Security: Restic encrypts your data before it is stored, ensuring privacy and security. The encryption key is securely stored and managed by Restic.
+Configurable Retention Policies: You can customize the retention policies to specify how long backups should be kept, allowing you to balance storage usage and backup history.
+Notification Support: The scripts can be configured to send notifications via email or other methods upon completion or failure of backup operations, keeping you informed about the backup status.
 
 ## Table of Contents
 
 1. [Project Description](#project-description)
 2. [Installation](#installation)
 3. [Usage](#usage)
-4. [Contributing](#contributing)
-5. [License](#license)
+4. [License](#license)
 
 ## Project Description<a name="project-description"></a>
 
@@ -47,7 +59,27 @@ Provide instructions on how to use the project. Include examples, code snippets,
 
 ## License<a name="license"></a>
 
-[Project Name] is licensed under the [License Name]. For more details, refer to the [LICENSE](LICENSE) file.
+MIT License
+
+Copyright (c) 2023 DavidKrGH
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## Additional Resources
 
@@ -59,4 +91,4 @@ Provide any additional resources that can assist users in understanding or worki
 
 ## Conclusion
 
-This documentation should provide you with the necessary information to get started with [Project Name]. If you have any questions or need further assistance, feel free to reach out to the project maintainers or refer to the provided additional resources. Happy coding!
+This documentation should provide you with the necessary information to get started with BackupScripts. If you have any questions or need further assistance, feel free to reach out to the project maintainers or refer to the provided additional resources. Happy coding!
