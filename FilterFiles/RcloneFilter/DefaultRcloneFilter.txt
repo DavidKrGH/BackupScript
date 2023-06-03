@@ -1,0 +1,10 @@
+
+# Docs: https://rclone.org/filtering/#patterns-for-matching-path-file-names
+########################## includes ##########################
+#+ include pattern
+
+########################## excludes ##########################
+#- exclude pattern
+#- Directory/**                     # Exclude complete directory
+- *.log                             # Exclusion of logging files
+

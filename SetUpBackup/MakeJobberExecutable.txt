@@ -1,0 +1,12 @@
+
+# Use to make the Executor filse executable
+# Change the /PATH/TO/ to point to BackupScripts directory
+
+
+
+chmod +x /PATH/TO/BackupScripts/Executor/LockHandler.sh
+chmod +x /PATH/TO/BackupScripts/Executor/Notifier.sh
+chmod +x /PATH/TO/BackupScripts/Executor/RcloneExec.sh
+chmod +x /PATH/TO/BackupScripts/Executor/ResticBackupExec.sh
+chmod +x /PATH/TO/BackupScripts/Executor/ResticForgetExec.sh
+chmod +x /PATH/TO/BackupScripts/Executor/ResticPruneExec.sh

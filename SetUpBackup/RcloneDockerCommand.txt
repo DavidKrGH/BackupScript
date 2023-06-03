@@ -1,0 +1,36 @@
+
+
+
+!!! Crange paths of commands !!!
+
+
+
+###################### Rclone ##############################
+###################### Basic Docker Command ################
+
+# Run this command to execute rclone commands
+# Replace /PATH/TO/ to the location of your BackupScripts directory
+# Replace /PATH/TO/YOUR/DATA to your data directory
+# Replace /PATH/TO/YOUR/DATA to your data directory
+# Replace $COMMAND$ with the actual Rclone command to be executed
+
+docker run --rm \
+--volume /PATH/TO/BackupScripts/Config/RcloneConfig:/config/rclone \
+--volume /PATH/TO/BackupScripts/LogFiles:/logfiles \
+--volume /PATH/TO/BackupScripts/FilterFiles:/filterfiles \
+--volume /PATH/TO/YOUR/DATA:/data:shared \
+--user $(id -u):$(id -g) \
+rclone/rclone \
+$COMMAND$
+
+
+
+###################### Create a Config #####################
+# Run this docker command to create a rclone configuration
+# Replace /PATH/TO/ to the location of your BackupScripts directory
+# Rclone will start an interactive session where you will be guided through the configuration process.
+
+docker run -i --rm \
+--volume /PATH/TO/BackupScripts/Config/RcloneConfig:/config/rclone \
+--user $(id -u):$(id -g) \
+rclone/rclone config

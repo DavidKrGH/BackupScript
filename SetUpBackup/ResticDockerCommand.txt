@@ -1,0 +1,57 @@
+
+
+
+!!! Crange paths of commands and insert your repository name !!!
+
+
+
+###################### Restic ##############################
+###################### Basic Docker Command ################
+
+# Run this command to execute restic commands
+# Replace /PATH/TO/ to the location of your BackupScripts directory
+# Replace /PATH/TO/YOUR/DATA to your data directory
+# Replace /PATH/TO/YOUR/REPOSITORIE to your repository
+# Replace $COMMAND$ with the actual Restic command to be executed
+
+docker run --rm \
+--volume /PATH/TO/BackupScripts/Restic:/home \
+--volume /PATH/TO/YOUR/DATA:/data \
+--volume /PATH/TO/YOUR/REPOSITORIE:/repo \
+--user $(id -u):$(id -g) \
+restic/restic \
+--password-file=/home/Config/restic-repo.password \
+$COMMAND$
+
+###################### Mount Repo for Data Restore #########
+###################### Mounting
+
+# Run this command to mount your repository to a empty folder 
+# Replace /PATH/TO/ to the location of your BackupScripts directory
+# Replace /PATH/TO/YOUR/DATA to your data directory
+# Replace /PATH/TO/YOUR/REPOSITORIE to your repository
+# Replace /PATH/TO/EMPTY/DIR to a empty directory
+# Run the command and keep the terminal window open
+
+docker run --rm \
+--name ResticMounted \
+--volume /PATH/TO//BackupScripts/Restic:/home \
+--volume /PATH/TO/YOUR/DATA:/data \
+--volume /PATH/TO/YOUR/REPOSITORIE:/repo \
+--volume /PATH/TO/EMPTY/DIR:/mountdir \
+--user $(id -u):$(id -g) \
+restic/restic \
+--password-file=/home/Config/restic-repo.password \
+-r repo mount /mountdir
+
+###################### Enter Mount
+
+# Run this command in a second terminal window to enter the mounted restic instance
+
+docker exec -it ResticMounted sh
+
+###################### Enter Filesystem
+
+# Run this command after you entered the restic instance to enter your repository
+
+cd /mountdir
