@@ -68,9 +68,24 @@ To install and set up the project, please follow the steps below:
   - Users should understand the output of the script and how to interpret the logs generated during the backup process.
   - To automate backup tasks, the execution of the backup job must be scheduled. Under Unraid, the application User-Scripts can be used for this. Otherwise, a cron job can also be created directly.
 
-2. **Clone the repository**: Use the following command to clone the repository to your local machine:
+### **1. Download the repository** ###
 
-https://github.com/[username]/[repository].git
+Download the entire repository and place all contained directories and files in a "BackupScripts" directory. Make sure the directory name is spelled correctly. The resulting folder structure is shown below. If the name of the root folder "BackupScripts" is changed, this must be taken into account in the backup jobs under the "home_path" variable and in the Docker commands during setup. Do not change the naming or structure of repository content unless explicitly instructed to do so by the instructions. Place the "BackupScripts" in a suitable location on your system. Since Docker containers need to access the BackupScript directory, the directory used by your Docker container is recommended.
+
+'''
+
+└── BackupScripts
+    ├── ActiveLocks
+    ├── Config
+    │   ├── RcloneConfig
+    │   └── ResticConfig
+    ├── Executor
+    ├── FilterFiles
+    ├── Jobs
+    ├── Logfiles
+    └── SetupInstructions
+'''
+
 
 3. **Dependencies**: Install the project dependencies by running the following command:
 
