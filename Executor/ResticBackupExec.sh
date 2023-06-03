@@ -113,7 +113,7 @@ fi
 
 ################################### Restic Backup
 
-cmd="docker run --rm \
+cmd="docker run --rm --name ResticBackup \
     --hostname $hostname \
     --volume $home_path:/home \
     --volume $source:/source \

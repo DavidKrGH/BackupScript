@@ -91,7 +91,7 @@ else                                # Stop execution
     exit 0
 fi
 
-cmd="docker run --rm \
+cmd="docker run --rm --name RcloneBackup \
     --volume $home_path/Config/RcloneConfig:/config/rclone \
     --volume $home_path/LogFiles:/LogFiles \
     --volume $home_path/FilterFiles/RcloneFilter:/FilterFiles \
