@@ -1,7 +1,5 @@
 # BackupScripts with Restic and Rclone
 
-# Project Documentation
-
 ## Introduction
 
 Welcome to the Backup Scripts Repository! This small private project aims to provide a set of shell scripts to facilitate the backup process of a folder structure using two powerful tools: Restic and Rclone.
@@ -27,7 +25,7 @@ Only basic command line knowledge is required for use and installation. Restic a
 1. [Project Description](#project-description)
 2. [Installation](#installation)
 3. [Usage](#usage)
-4. [Final Note][#final-note]
+4. [Final Note](#final-note)
 4. [License](#license)
 
 ## Project Description<a name="project-description"></a>
@@ -97,7 +95,7 @@ To install and set up the project, please follow the steps below:
 
 ### **4. Setup Notification** ###
 
-If an error occurs when executing a script, a notification can be sent. This is already prepared for the unraid notification system. To activate this function, the script "BackupScripts>Executor>Notifier.sh" must be opened with an editor. In the "to_system_notification" method, the commented out command can then be activated. The script is designed in such a way that further interfaces for notifications can be added. Customize this to suit your needs. The script must then be placed back in its original position. The script may have to be made executable again.
+- If an error occurs when executing a script, a notification can be sent. This is already prepared for the unraid notification system. To activate this function, the script "BackupScripts>Executor>Notifier.sh" must be opened with an editor. In the "to_system_notification" method, the commented out command can then be activated. The script is designed in such a way that further interfaces for notifications can be added. Customize this to suit your needs. The script must then be placed back in its original position. The script may have to be made executable again.
 
 ## Usage<a name="usage"></a>
 
