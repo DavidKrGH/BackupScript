@@ -70,7 +70,7 @@ To install and set up the project, please follow the steps below:
 
 ### **1. Download the repository** ###
 
-Download the entire repository and place all contained directories and files in a "BackupScripts" directory. Make sure the directory name is spelled correctly. The resulting folder structure is shown below. If the name of the root folder "BackupScripts" is changed, this must be taken into account in the backup jobs under the "home_path" variable and in the Docker commands during setup. Do not change the naming or structure of repository content unless explicitly instructed to do so by the instructions. Place the "BackupScripts" in a suitable location on your system. Since Docker containers need to access the BackupScript directory, the directory used by your Docker container is recommended.
+- Download the entire repository and place all contained directories and files in a "BackupScripts" directory. Make sure the directory name is spelled correctly. The resulting folder structure is shown below. If the name of the root folder "BackupScripts" is changed, this must be taken into account in the backup jobs under the "home_path" variable and in the Docker commands during setup. Do not change the naming or structure of repository content unless explicitly instructed to do so by the instructions. Place the "BackupScripts" in a suitable location on your system. Since Docker containers need to access the BackupScript directory, the directory used by your Docker container is recommended.
 
 ```
 └── BackupScripts
@@ -84,15 +84,15 @@ Download the entire repository and place all contained directories and files in 
     ├── Logfiles
     └── SetupInstructions
 ```
+### **2. Setup Restic and Rclone** ###
 
+- In order to use Restic, a repository must be created. The snapshots of your backups are created in the repository. See the Restic [documentation](https://restic.readthedocs.io/en/latest/). You can add all backup jobs to the same repository, creating a separate one for each job. To create a repository follow the instructions from "BackupScripts>SetupInstruction>Create_Repository.txt".
 
-3. **Dependencies**: Install the project dependencies by running the following command:
+- To use Rclone, a configuration for the remote system must be created. If no remote backups are desired, this can be dispensed with. However, the schedule for Rclone in the backup job must then be set to "never". Rclone supports a variety of cloud providers and transmission protocols. See the Rclone [documentation](https://rclone.org/docs/) for selection and setup. Once you have decided to use remote system you can start the interactive creation process by following the instructions from "BackupScripts>SetupInstruction>Create_Rclone_Config.txt".
 
+### **3. Setup Restic and Rclone** ###
 
-
-
-
-4. **Configuration**: If there are any additional configuration steps required, outline them here.
+- So that scripts can be executed on your system shell, they must first be made executable. All relevant files are listed in "BackupScripts>SetupInstructions>Make_Executable.txt". Change the path to match the BackupScripts directory on your system. The commands can then be copied into a terminal window and executed. Before doing this, however, make sure that you have the necessary rights and that the changed paths are correct. The execution was successful if you don't get any feedback.
 
 ## Usage<a name="usage"></a>
 
