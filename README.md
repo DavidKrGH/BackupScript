@@ -73,31 +73,31 @@ https://github.com/[username]/[repository].git
 
 3. **Dependencies**: Install the project dependencies by running the following command:
 
+- **Operating System**
+  - The script is designed to run on a Unix-like operating system such as Linux or macOS.
 
-### Operating System
-The script is designed to run on a Unix-like operating system such as Linux or macOS.
+- **Dependencies**
+  - Docker: The host system should have Docker installed and properly configured to run containers.
+  - Restic and Rclone: The Docker images Restic and Rclone are required to run the script. If the images are not available locally, they will be downloaded automatically. Make sure the system has access to the internet or provide the images locally.
 
-### Dependencies
-- Docker: The host system should have Docker installed and properly configured to run containers.
-- Restic and Rclone: The Docker images Restic and Rclone are required to run the script. If the images are not available locally, they will be downloaded automatically. Make sure the system has access to the internet or provide the images locally.
+- **Setup/Job Configuration**
+  - You should know how to edit the job template included in the script to define the required values for your backup tasks. These values include the job name, source directory, repository path, password file, tags, and other options specific to Restic and Rclone.
+  - For proper backup job setup, you should be familiar with the function of Restic and Rclone. Please refer to the documentation of the programs.
+  - Since Restic and Rclone are command line programs, you should have basic knowledge of using the terminal.
+  - Since Docker containers are used, you should have basic knowledge of using Docker containers.
 
-### Setup/Job Configuration
-- You should know how to edit the job template included in the script to define the required values for your backup tasks. These values include the job name, source directory, repository path, password file, tags, and other options specific to Restic and Rclone.
-- For proper backup job setup, you should be familiar with the function of Restic and Rclone. Please refer to the documentation of the programs.
-- Since Restic and Rclone are command line programs, you should have basic knowledge of using the terminal.
-- Since Docker containers are used, you should have basic knowledge of using Docker containers.
+- **Access and Permissions**
+  - You should have sufficient access rights on the system to run the script and access the required directories, files, and Docker resources.
+  - If using Docker containers, you should have the appropriate permissions to interact with Docker, run containers, and manage container networks.
 
-### Access and Permissions
-- You should have sufficient access rights on the system to run the script and access the required directories, files, and Docker resources.
-- If using Docker containers, you should have the appropriate permissions to interact with Docker, run containers, and manage container networks.
+- **Notification Setup**
+  - The script provides the option to use Unraid's notification system. Emails and other notification channels can be used through this. If you are using a different operating system, you will need to make your own settings to suit your system.
 
-### Notification Setup
-- The script provides the option to use Unraid's notification system. Emails and other notification channels can be used through this. If you are using a different operating system, you will need to make your own settings to suit your system.
+- **Script Execution/Scheduling**
+  - You should be familiar with running bash scripts and know how to run the Restic Rclone Backup script with the required parameters.
+  - Users should understand the output of the script and how to interpret the logs generated during the backup process.
+  - To automate backup tasks, the execution of the backup job must be scheduled. Under Unraid, the application User-Scripts can be used for this. Otherwise, a cron job can also be created directly.
 
-### Script Execution/Scheduling
-- You should be familiar with running bash scripts and know how to run the Restic Rclone Backup script with the required parameters.
-- Users should understand the output of the script and how to interpret the logs generated during the backup process.
-- To automate backup tasks, the execution of the backup job must be scheduled. Under Unraid, the application User-Scripts can be used for this. Otherwise, a cron job can also be created directly.
 
 
 4. **Configuration**: If there are any additional configuration steps required, outline them here.
