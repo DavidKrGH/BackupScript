@@ -27,6 +27,7 @@ Only basic command line knowledge is required for use and installation. Restic a
 1. [Project Description](#project-description)
 2. [Installation](#installation)
 3. [Usage](#usage)
+4. [Final Note][#final-note]
 4. [License](#license)
 
 ## Project Description<a name="project-description"></a>
@@ -94,11 +95,65 @@ To install and set up the project, please follow the steps below:
 
 - So that scripts can be executed on your system shell, they must first be made executable. All relevant files are listed in "BackupScripts>SetupInstructions>Make_Executable.txt". Change the path to match the BackupScripts directory on your system. The commands can then be copied into a terminal window and executed. Before doing this, however, make sure that you have the necessary rights and that the changed paths are correct. The execution was successful if you don't get any feedback.
 
+### **4. Setup Notification** ###
+
+If an error occurs when executing a script, a notification can be sent. This is already prepared for the unraid notification system. To activate this function, the script "BackupScripts>Executor>Notifier.sh" must be opened with an editor. In the "to_system_notification" method, the commented out command can then be activated. The script is designed in such a way that further interfaces for notifications can be added. Customize this to suit your needs. The script must then be placed back in its original position. The script may have to be made executable again.
+
 ## Usage<a name="usage"></a>
 
-Provide instructions on how to use the project. Include examples, code snippets, or detailed explanations to guide users through different functionalities. Describe any available options, flags, or parameters that can be used.
+###  Setting up a backup job ###
 
-[Include any relevant information regarding project usage, such as commands, APIs, or user interfaces.]
+To create a backup job, a job template is provided. The template BaseJob.sh can be found under "BackupScripts>Jobs". By creating a copy, the template can be adapted to the desired backup job. For this purpose, a number of variables are provided which can be used to configure the backup job. Please do not change the names of the variables or the area below them. It is also not necessary to change the files in the executor directory, with the exception of the Notifier.sh for setting up your own notification interfaces.
+
+A backup job consists of a total of four sub-processes:
+1. **Restic** Backup: Here, the source directory is scanned and a snapshot is added to the repository. Since in some cases Docker containers have to be stopped for this, a corresponding function is implemented. This can be used to stop and restart individual or all active containers for the duration of the backup.
+2. **Restic Forget**: Snapshots can be given a shelf life. If this is exceeded, the snapshots in question are removed from the repository. Retention guidelines are available for this purpose. During the "Forget" process, these policies are applied to the snapshots in the repository and removed.
+3. **Restic Prune**: A "Forget" only removes the incremental links, but does not delete any data from the repository. This is done by running "Prune". This scans for files that are no longer linked to any existing snapshot and then deletes them.
+4. **Rclone Remote Backup**: Rclone is used to transfer the local repository to a remote system. In this process, the selected Rclone configuration is used and the repository is transferred. The script uses the "sync" mode of Rclone. Therefore, files that are no longer present in the local repository are also removed from the remote repository.
+
+The sub-processes "Forget", "Prune" and "Rclone Remote Backup" can be provided with their own schedule. These are independent of the execution schedule of the backup job. If the "weekly" or "mothly" pattern is used, these processes will only be started if the execution of the backup job matches the respective schedule. On the day on which a schedule is active, the sub-process is only executed once and then a lock file is created in the "ActivLocks" directory. As long as this file exists, no further execution of the sub-process will take place on the day of execution. After one day, the old lock files are automatically deleted. If a sub-process is to be executed a second time, the second schedule must be set to "always" or the lock file in question must be deleted manually from the "ActivLocks" directory.
+
+An overview of all the variables available is listed below with descriptions. It is recommended that you read about the variables before using this script. In all other cases, a look at the documentation of restic and rclone will also help.
+
+### Configuration ###
+
+The most important variables to configure are:
+
+- `job_name`: The name of the script or the backup job. Must be unique, as this is used to detect whether the backup job is already running.
+- `home_path`: The path to the "BackupScripts" directory containing the script and its utilities.
+- `hostname`: The name used to identify your system in the snapshots.
+- `source`: The source directory to be backed up.
+- `repo`: The path to the backup repository where the backups will be stored.
+- `password_file`: The file name containing the password for the backup repository.
+- `tags`: Tags to be assigned to the snapshots of the backup.
+- `filter_file`: A filter file to exclude certain files or directories from the backup.
+- `restic_options`: Additional options specific to Restic. See the `restic_options` in the restic documentation.
+- `schedule_forget`: Schedule for the execution of the Restic forget process.
+- `hourly_for`, `daily_for`, `weekly_for`, `monthly_for`, `yearly_for`: Time periods for keeping snapshots.
+- `schedule_prune`: The schedule for removing old snapshots from the repository.
+- `handle_docker`: Specifies whether Docker containers should be stopped during the backup.
+- `reverse_on_start`: Specifies whether the order of the container list should be reversed on startup.
+- `stop_start_remaining_container`: Specifies whether remaining containers should be stopped and started after stopping the containers in the list.
+- `container_list`: A list of containers to be stopped in a specific order. The order of the list corresponds to the order of stopping.
+- `schedule_rclone`: The schedule for running Rclone.
+- `dest_remote`: The destination for Rclone.
+- `log_level`: The log level for Rclone.
+- `rclone_options`: Additional options specific to Rclone.
+
+### Execution of the script ###
+
+In order to automatically execute the backup defined in the backup job, a schedule must be created. Unraid offers the "User Scripts" plugin for this purpose. This is a convenient way to execute scripts with a cron job. How to set up a cron job via terminal can be found in these instructions [Cron jobs](https://www.freecodecamp.org/news/cron-jobs-in-linux/). The execution of the backup job then takes place at the defined frequency, whereby the "backup process" is implemented with every execution and the other processes of the schedules defined in the script.
+
+
+
+## Final Note<a name="final-note"></a>
+
+I hope these scripts help you to simplify your backup process. The intention for creating these scripts and writing this guide came about mainly because it took me a relatively long time to use Restic and Rclone over docker containers. Unfortunately, there were no suitable solutions or instructions for me. Therefore, I hope that this will make the way to your backups a little easier for you.
+
+If you have any questions, comments or errors, please let me know.
+
+With this in mind, I wish you happy backups!
+
 
 
 ## License<a name="license"></a>
@@ -124,15 +179,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-## Additional Resources
-
-Provide any additional resources that can assist users in understanding or working with the project, such as:
-
-- Link to the project's website or documentation
-- Related articles or tutorials
-- Community forums or support channels
-
-## Conclusion
-
-This documentation should provide you with the necessary information to get started with BackupScripts. If you have any questions or need further assistance, feel free to reach out to the project maintainers or refer to the provided additional resources. Happy coding!
