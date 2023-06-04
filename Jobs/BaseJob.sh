@@ -1,10 +1,30 @@
 #!/bin/bash
 
+#################################### License ####################################
+# MIT License Copyright (c) 2023 David Krumm
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 #################################################################################
 #================================ BackupScripts ================================#
 #################################################################################
                                                                                 #     
-job_name="$(basename $0)"                                                       # Script name
+job_name="$(basename $0)"                                                       # Job name. Has to be unique!!!
                                                                                 #
 home_path="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory
                                                                                 #
@@ -18,15 +38,15 @@ repo="/PATH/TO/REPO"                                                            
                                                                                 #
 password_file="restic-repo.password"                                            # File in Config/ResticConfig. Insert yor repository password first.
                                                                                 #
-tags="--tag FirstTag --tag SecondTag"                                           # Tags to be applied to the backup
+tags="--tag FirstTag --tag SecondTag"                                           # Tags to be applied to the backup snapshots
                                                                                 #
 filter_file="DefaultResticFilter.txt"                                           # Filter file to exclude specific files or directories from the backup
                                                                                 #
 restic_options=""                                                               # Additional options specific to Restic
                                                                                 #
 ############################## Snapshot Rotation                                #     
-                                                                                # Removes snapshots from repository. But dose not delete any Data
-schedule_forget="always"                                                        # Schedule for forgetting snapshots: "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15"
+                                                                                # Schedule for the execution of the Restic forget process:
+schedule_forget="always"                                                        # "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15"
                                                                                 # Executed only once per day if the weekly or monthly pattern is used.
                                                                                 #
 hourly_for="12h"                                                                # Number of hours to keep hourly snapshots
@@ -36,10 +56,9 @@ monthly_for="1y"                                                                
 yearly_for="5y"                                                                 # Number of years to keep yearly snapshots
                                                                                 #
 ############################## Prune                                            #
-                                                                                #
-schedule_prune="weekly: Mon, Wed, Sat"                                          # Schedule for pruning snapshots: "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15" 
+                                                                                # Schedule for the execution of the Restic forget process:
+schedule_prune="weekly: Mon, Wed, Sat"                                          # "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15"
                                                                                 # Executed only once per day if the weekly or monthly pattern is used.
-                                                                                #
 ############################## Docker ###########################################
                                                                                 #
 handle_docker="false"                                                           # Whether to handle Docker containers during backup
@@ -55,7 +74,7 @@ container_list=("1. Container" "2. Container" "3. Container")                   
 schedule_rclone="monthly, 10"                                                   # Schedule for running Rclone: "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15" 
                                                                                 # Executed only once per day if the weekly or monthly pattern is used.
                                                                                 #
-dest_remote="RemoteName:/PATH"                                                  # Destination remote for Rclone
+dest_remote="RemoteName:/PATH/ON/REMOTE"                                        # Destination remote for Rclone
                                                                                 #
 log_level="NOTICE"                                                              # Log level for Rclone: "DEBUG", "INFO", "NOTICE", "ERROR"
                                                                                 #
