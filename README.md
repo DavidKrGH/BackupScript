@@ -124,7 +124,7 @@ The most important variables to configure are:
 - `repo`: The path to the backup repository where the backups will be stored.
 - `password_file`: The file name containing the password for the backup repository.
 - `tags`: Tags to be assigned to the snapshots of the backup.
-- `filter_file`: A filter file to exclude certain files or directories from the backup.
+- `filter_file`: Restic allows you to set a filter file. To set it up, see the documentation. 
 - `restic_options`: Additional options specific to Restic. See the `restic_options` in the restic documentation.
 - `schedule_forget`: Schedule for the execution of the Restic forget process.
 - `hourly_for`, `daily_for`, `weekly_for`, `monthly_for`, `yearly_for`: Time periods for keeping snapshots.
@@ -141,6 +141,11 @@ The most important variables to configure are:
 ### Execution of the script ###
 
 In order to automatically execute the backup defined in the backup job, a schedule must be created. Unraid offers the "User Scripts" plugin for this purpose. This is a convenient way to execute scripts with a cron job. How to set up a cron job via terminal can be found in these instructions [Cron jobs](https://www.freecodecamp.org/news/cron-jobs-in-linux/). The execution of the backup job then takes place at the defined frequency, whereby the "backup process" is implemented with every execution and the other processes of the schedules defined in the script.
+
+### Mounting the repository ###
+
+Restic allows you to make the contents of a backup repository accessible as a regular file system on your computer or server. This allows you to access individual files or directories within the repository without having to restore the entire backup. This process is called mounting. How to mount a repository can be found in the instructions from "BackupScripts>SetupInstuctions>Mount_Repository". How to use a mounted repository is described in the documentation of restic.
+
 
 
 
