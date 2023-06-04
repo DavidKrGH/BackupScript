@@ -17,7 +17,8 @@
 
 docker run --rm \
 --name ResticMounted \
---volume /PATH/TO//BackupScripts:/home \
+--device /dev/fuse --cap-add SYS_ADMIN \
+--volume /PATH/TO/BackupScripts:/home \
 --volume /PATH/TO/YOUR/DATA:/data \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --volume /PATH/TO/EMPTY/DIR:/mountdir \
@@ -42,4 +43,4 @@ docker exec -it ResticMounted sh
 
 # Run this command after you entered the restic instance to enter your repository
 
-cd /mountdir
+cd mountdir

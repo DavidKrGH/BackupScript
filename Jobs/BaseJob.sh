@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# BackupScripts version 1.0
 #################################### License ####################################
 # MIT License Copyright (c) 2023 David Krumm                                    #
 # All rights reserved.                                                          #
@@ -10,7 +10,7 @@
 #================================ BackupScripts ================================#
 #################################################################################
                                                                                 #     
-job_name="$(basename $0)"                                                       # Job name. Has to be unique!!!
+job_name="ChangeMeToUniqueName"                                                 # Unique job name. "_" are not allowed!!!
                                                                                 #
 home_path="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory
                                                                                 #

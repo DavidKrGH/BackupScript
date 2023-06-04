@@ -69,7 +69,7 @@ To install and set up the project, please follow the steps below:
 
 ### **1. Download the repository** ###
 
-- Download the entire repository and place all contained directories and files in a "BackupScripts" directory. Make sure the directory name is spelled correctly. The resulting folder structure is shown below. If the name of the root folder "BackupScripts" is changed, this must be taken into account in the backup jobs under the "home_path" variable and in the Docker commands during setup. Do not change the naming or structure of repository content unless explicitly instructed to do so by the instructions. Place the "BackupScripts" in a suitable location on your system. Since Docker containers need to access the BackupScript directory, the directory used by your Docker container is recommended.
+- Download the entire repository and place all contained directories and files in a "BackupScripts" directory. Make sure the directory name is spelled correctly. The resulting folder structure is shown below. If the name of the root folder "BackupScripts" is changed, this must be taken into account in the backup jobs under the "home_path" variable and in the Docker commands during setup. Do not change the naming or structure of repository content unless explicitly instructed to do so by the instructions. Place the "BackupScripts" in a suitable location on your system. Since Docker containers need to access the BackupScript directory, the directory used by your Docker container is recommended. Some directories contain a ".gitkeep" file. This is used to ensure that the otherwise empty directory is included in a download. The ".gitkeep" files are otherwise without function and can be deleted.
 
 ```
 └── BackupScripts
