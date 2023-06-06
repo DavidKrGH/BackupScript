@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0
+# BackupScripts version 1.0.1
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -58,6 +58,7 @@ start_stop_containers() {
     local command="$1"
     shift
     local containers=("$@")
+    call_notifier "1" ""
     call_notifier "1" "Execute '${command}' for docker containers: '$(convert_array_to_print "${containers[@]}")'"
 
     for con in "${containers[@]}"; do
@@ -95,9 +96,8 @@ start_stop_containers() {
 
 ################################### Backup ##################################
 
-call_notifier "-1" ""
-call_notifier "1" "Starting 'backup' job of '$source'"
 call_notifier "1" ""
+call_notifier "1" "Starting 'backup' job of '$source'"
 
 ################################### Stop Docker Container
 
@@ -114,7 +114,8 @@ if [[ "$handle_docker" == "true" ]]; then
     fi
 
 else
-    call_notifier "1" "" "Container handling deactivated"
+    call_notifier "1" ""
+    call_notifier "1" "Container handling deactivated"
 fi
 
 ################################### Restic Backup
@@ -136,7 +137,6 @@ call_notifier "1" ""
 call_notifier "1" "Backup in progress ... "
 call_notifier "1" ""
 call_notifier "1" "$cmd"
-call_notifier "1" ""
 
 eval $cmd
 exit_code=$?
@@ -160,10 +160,12 @@ fi
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
+    call_notifier "1" ""
     call_notifier "1" "Completed 'backup' job of '$source' successfully"
-    call_notifier "-1" ""
     exit 0
 else
+    call_notifier "-1" ""
     call_notifier "2" "ERROR $job_name: Backup of '$source' failed with exit_code=$exit_code"
+    call_notifier "-1" ""
     exit 1
 fi

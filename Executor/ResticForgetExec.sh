@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0
+# BackupScripts version 1.0.1
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -38,24 +38,24 @@ release_lock() {
     "$home_path/Executor/LockHandler.sh" "$home_path" "release" "$job_name" "$lock_reason"
     exit_code=$?
     if [[ "$exit_code" != 0 ]]; then    # Faild to evaluate. Exit with error
-        call_notifier "2" "ERROR $job_name: Faildd to release '$lock_reason'"
+        call_notifier "2" "ERROR $job_name: Failed to release '$lock_reason'"
     fi
 }
 
 check_date() {
-    # Usage: check_date <pattern>
-    #  - <pattern> can be one of the following:
-    #     - "always": Execute the function every time it is called.
-    #     - "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun": Execute the function on the specified days of the week.
-    #       Replace the example days with your desired days.
-    #     - "monthly: <day>": Execute the function on the specified day of the month.
-    #       Replace <day> with the desired day of the month (e.g., "1" for the 1st day, "15" for the 15th day).
-    #     - "never": Never execute the function.
+# Usage: check_date <pattern>
+#  - <pattern> can be one of the following:
+#     - "always": Execute the function every time it is called.
+#     - "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun": Execute the function on the specified days of the week.
+#       Replace the example days with your desired days.
+#     - "monthly: <day>": Execute the function on the specified day of the month.
+#       Replace <day> with the desired day of the month (e.g., "1" for the 1st day, "15" for the 15th day).
+#     - "never": Never execute the function.
     local input="$1"
     local current_date=$(date +%F)                              # Get current date in YYYY-MM-DD format
+    release_lock                                                # Release outdated locks first
 
     if [[ "$input" == "always" ]]; then
-        release_lock
         return 0                                                # Match found, return true
     elif [[ "$input" == weekly* ]]; then
         local days="${input#weekly: }"                          # Extract the days of the week
@@ -84,13 +84,11 @@ check_date() {
 
 # Check schedule for execution 
 if check_date "$schedule"; then     # Continue with the backup
-    call_notifier "-1" ""
-    call_notifier "1" "Starting 'forget' job of '$repo'"
     call_notifier "1" ""
+    call_notifier "1" "Starting 'forget' job of '$repo'"
 else                                # Stop execution
-    call_notifier "-1" ""
+    call_notifier "1" ""
     call_notifier "1" "Skip 'forget' because of schedule '$schedule'"
-    call_notifier "-1" ""
     release_lock                    # Release lock when scheduled day is over
     exit 0
 fi
@@ -109,7 +107,6 @@ call_notifier "1" "Forget in progress ... "
 call_notifier "1" "Keep-Rules: '$keep_rules'"
 call_notifier "1" ""
 call_notifier "1" "$cmd"
-call_notifier "1" ""
 
 eval $cmd
 exit_code=$?
@@ -117,10 +114,12 @@ exit_code=$?
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
+    call_notifier "1" ""
     call_notifier "1" "Completed 'forget' job of '$repo' successfully"
-    call_notifier "-1" ""
     exit 0
 else
+    call_notifier "-1" ""
     call_notifier "2" "ERROR $job_name:  Forget of '$repo' failed with exit_code=$exit_code"
+    call_notifier "-1" ""
     exit 1
 fi

@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0
+# BackupScripts version 1.0.1
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -28,15 +28,13 @@ call_notifier() {
 check_lock() {
 
     if [[ -f "$lock_file" ]]; then          # Check if lock file exists
-        call_notifier "-1" ""
+        call_notifier "1" ""
         call_notifier "1" "Lock for '$lock' is already set"
-        call_notifier "-1" ""
         exit 99
     else                                    # Create lock file if none exists
         touch "$lock_file"
-        call_notifier "-1" ""
+        call_notifier "1" ""
         call_notifier "1" "Set lock for '$lock'"
-        call_notifier "-1" ""
         exit 0
     fi
 }
@@ -57,15 +55,13 @@ delete_lock_files() {
             if [[ "$file_lock" == "running" ]]; then
                 # Delete the lock file if the lock is set to "running"
                 rm "$file"
-                call_notifier "-1" ""
+                call_notifier "1" ""
                 call_notifier "1" "Delete Lock 'running' for '$job_name'"
-                call_notifier "-1" ""
             elif [[ "$file_date" -lt "$current_date" ]]; then
                 # Delete the lock file if the date is older than today
                 rm "$file"
-                call_notifier "-1" ""
+                call_notifier "1" ""
                 call_notifier "1" "Delete Lock '$lock'"
-                call_notifier "-1" ""
             fi
         fi
     done

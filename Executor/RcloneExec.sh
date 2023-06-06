@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0
+# BackupScripts version 1.0.1
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -55,9 +55,9 @@ check_date() {
 #     - "never": Never execute the function.
     local input="$1"
     local current_date=$(date +%F)                              # Get current date in YYYY-MM-DD format
+    release_lock                                                # Release outdated locks first
 
     if [[ "$input" == "always" ]]; then
-        release_lock
         return 0                                                # Match found, return true
     elif [[ "$input" == weekly* ]]; then
         local days="${input#weekly: }"                          # Extract the days of the week
@@ -86,13 +86,11 @@ check_date() {
 
 # Check schedule for execution 
 if check_date "$schedule"; then     # Continue with the backup
-    call_notifier "-1" ""
-    call_notifier "1" "Starting 'rclone' job to $destination"
     call_notifier "1" ""
+    call_notifier "1" "Starting 'rclone' job to $destination"
 else                                # Stop execution
-    call_notifier "-1" ""
+    call_notifier "1" ""
     call_notifier "1" "Skip 'rclone' because of schedule '$schedule'."
-    call_notifier "-1" ""
     release_lock                    # Release lock when scheduled day is over
     exit 0
 fi
@@ -111,7 +109,6 @@ call_notifier "1" ""
 call_notifier "1" "Backup in progress ... "
 call_notifier "1" ""
 call_notifier "1" "$cmd"
-call_notifier "1" ""
 
 eval $cmd
 exit_code=$?
@@ -119,10 +116,12 @@ exit_code=$?
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
+    call_notifier "1" ""
     call_notifier "1" "Completed 'backup' job to '$destination' successfully"
-    call_notifier "-1" ""
     exit 0
 else
+    call_notifier "-1" ""
     call_notifier "2" "ERROR $job_name: Rclone to '$destination' failed with exit_code=$exit_code"
+    call_notifier "-1" ""
     exit 1
 fi

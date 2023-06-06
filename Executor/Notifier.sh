@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0
+# BackupScripts version 1.0.1
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #

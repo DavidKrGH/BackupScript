@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0
+# BackupScripts version 1.0.1
 #################################### License ####################################
 # MIT License Copyright (c) 2023 David Krumm                                    #
 # All rights reserved.                                                          #
@@ -104,6 +104,7 @@ release_lock() {
 
 ############################## Jobs #############################################
 
+call_notifier "-1" ""
 call_notifier "1" "Starting '$job_name' ..."
 
 evaluate_lock
@@ -155,8 +156,9 @@ fi
 "" "--log-file /LogFiles/${job_name}_logging.log --log-level=$log_level" "$rclone_options"
 
 release_lock
-
+call_notifier "1" ""
 call_notifier "1" "Finished '$job_name'"
+call_notifier "-1" ""
 
 #################################################################################
 #                                      End                                      #
