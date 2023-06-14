@@ -15,6 +15,15 @@ destination="$5"                                                            # De
 filter_options="$6"                                                         # Settings for filtering files
 logging_options="$7"                                                        # Settings for the logging of rclone
 options="$8"                                                                # Additional rclone options
+######################### Docker Volume Propagation #########################
+
+if [[ $source == *":"* ]]; then
+    source_prop=":$(echo "$source" | cut -d ":" -f 2)"
+    source=$(echo "$source" | cut -d ":" -f 1)
+else
+    source_prop=""
+fi
+
 ################################# Funktions #################################
 
 call_notifier() {
@@ -99,7 +108,7 @@ cmd="docker run --rm --name RcloneBackup \
     --volume $home_path/Config/RcloneConfig:/config/rclone \
     --volume $home_path/LogFiles:/LogFiles \
     --volume $home_path/FilterFiles/RcloneFilter:/FilterFiles \
-    --volume $source:/source \
+    --volume $source:/source$source_prop \
     --user $(id -u):$(id -g) \
     rclone/rclone sync /source $destination \
     $filter_options $logging_options $options"

@@ -51,9 +51,9 @@ to_mail() {
 
 ################################# Send ######################################
 
-if [[ "$importance" == -1 ]]; then      # Create an empty line
-    to_terminal ""
-    to_logfile ""
+if [[ "$importance" == -1 ]]; then      # Log without timestamp
+    to_terminal "$message"
+    to_logfile "$message"
     
 elif [[ "$importance" == 0 ]]; then
     to_terminal "$timestamp - ERROR: No level set for Notification"

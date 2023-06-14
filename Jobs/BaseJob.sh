@@ -12,15 +12,15 @@
                                                                                 #     
 job_name="ChangeMeToUniqueName"                                                 # Unique job name. "_" are not allowed!!!
                                                                                 #
-home_path="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory
+home_path="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory. Does not support Docker volume propagation!
                                                                                 #
 hostname="HOSTNAME"                                                             # Name to identify your System in Snapshots
                                                                                 #
 ############################## Restic ###########################################
                                                                                 #
-source="/PATH/TO/DATA"                                                          # Source directory to be backed up
+source="/PATH/TO/DATA"                                                          # Source directory to be backed up. Support for Docker volume propagation! E.G. "/PATH/TO/DATA:rw,slave"
                                                                                 #
-repo="/PATH/TO/REPO"                                                            # Path to the backup repository
+repo="/PATH/TO/REPO"                                                            # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave"
                                                                                 #
 password_file="restic-repo.password"                                            # File in Config/ResticConfig. Insert yor repository password first.
                                                                                 #
@@ -60,7 +60,7 @@ container_list=("1. Container" "2. Container" "3. Container")                   
 schedule_rclone="monthly, 10"                                                   # Schedule for running Rclone: "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15" 
                                                                                 # Executed only once per day if the weekly or monthly pattern is used.
                                                                                 #
-dest_remote="RemoteName:/PATH/ON/REMOTE"                                        # Destination remote for Rclone
+dest_remote="RemoteName:/PATH/ON/REMOTE"                                        # Destination remote for Rclone. Does not support Docker volume propagation!
                                                                                 #
 log_level="NOTICE"                                                              # Log level for Rclone: "DEBUG", "INFO", "NOTICE", "ERROR"
                                                                                 #

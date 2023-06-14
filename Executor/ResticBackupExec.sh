@@ -22,6 +22,22 @@ stop_start_remaining_container="${11}"                                      # "t
 reverse_on_start="${12}"                                                    # "true" to reverse the order of the container_list at start-up
 shift 12                                                                    #
 container_list=("$@")                                                       # List and sequence of containers to be stopped
+######################### Docker Volume Propagation #########################
+
+if [[ $source == *":"* ]]; then
+    source_prop=":$(echo "$source" | cut -d ":" -f 2)"
+    source=$(echo "$source" | cut -d ":" -f 1)
+else
+    source_prop=""
+fi
+
+if [[ $repo == *":"* ]]; then
+    repo_prop=":$(echo "$repo" | cut -d ":" -f 2)"
+    repo=$(echo "$repo" | cut -d ":" -f 1)
+else
+    repo_prop=""
+fi
+
 ################################## Funktions ################################
 
 call_notifier() {
@@ -123,8 +139,8 @@ fi
 cmd="docker run --rm --name ResticBackup \
     --hostname $hostname \
     --volume $home_path:/home \
-    --volume $source:/source \
-    --volume $repo:/repo \
+    --volume $source:/source$source_prop \
+    --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \
     restic/restic \
     --password-file=/home/Config/ResticConfig/$password_file \
@@ -138,7 +154,8 @@ call_notifier "1" "Backup in progress ... "
 call_notifier "1" ""
 call_notifier "1" "$cmd"
 
-eval $cmd
+output=$(eval $cmd)
+call_notifier "-1" "$output"
 exit_code=$?
 
 ################################### Start Docker

@@ -13,6 +13,15 @@ repo="$3"                                                                   # De
 password_file="$4"                                                          # Password file of restic repo
 schedule="$5"                                                               # Pattern for the submission of a timetable for execution
 keep_rules="$6"                                                             # Rules for keeping snapshots
+######################### Docker Volume Propagation #########################
+
+if [[ $repo == *":"* ]]; then
+    repo_prop=":$(echo "$repo" | cut -d ":" -f 2)"
+    repo=$(echo "$repo" | cut -d ":" -f 1)
+else
+    repo_prop=""
+fi
+
 ################################## Funktions ################################
 
 call_notifier() {
@@ -95,7 +104,7 @@ fi
 
 cmd="docker run --rm --name ResticForget \
     --volume $home_path:/home \
-    --volume $repo:/repo \
+    --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \
     restic/restic \
     --password-file=/home/Config/ResticConfig/$password_file \
@@ -108,7 +117,8 @@ call_notifier "1" "Keep-Rules: '$keep_rules'"
 call_notifier "1" ""
 call_notifier "1" "$cmd"
 
-eval $cmd
+output=$(eval $cmd)
+call_notifier "-1" "$output"
 exit_code=$?
 
 ################################# Evaluation ################################

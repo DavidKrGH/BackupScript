@@ -12,6 +12,15 @@ job_name="$2"                                                               # Na
 repo="$3"                                                                   # Destination directory of the data backup
 password_file="$4"                                                          # Password file of restic repo
 schedule="$5"                                                               # Pattern for the submission of a timetable for execution
+######################### Docker Volume Propagation #########################
+
+if [[ $repo == *":"* ]]; then
+    repo_prop=":$(echo "$repo" | cut -d ":" -f 2)"
+    repo=$(echo "$repo" | cut -d ":" -f 1)
+else
+    repo_prop=""
+fi
+
 ################################## Funktions ################################
 
 call_notifier() {
@@ -94,7 +103,7 @@ fi
 
 cmd="docker run --rm --name ResticPrune \
     --volume $home_path:/home \
-    --volume $repo:/repo \
+    --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \
     restic/restic \
     --password-file=/home/Config/ResticConfig/$password_file \
@@ -106,7 +115,8 @@ call_notifier "1" "Prune in progress ... "
 call_notifier "1" ""
 call_notifier "1" "$cmd"
 
-eval $cmd
+output=$(eval $cmd)
+call_notifier "-1" "$output"
 exit_code=$?
 
 ################################# Evaluation ################################
