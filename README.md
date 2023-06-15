@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Welcome to the Backup Scripts Repository! This small private project aims to provide a set of shell scripts to facilitate the backup process of a folder structure using two powerful tools: Restic and Rclone.
+Welcome to the Backup Scripts Repository! This small private project aims to create fast, easy and reliable backups. After setup, all you need to do for this is to customize a template for the desired backup job. The powerful tools Restic and Rclone are used for the backup process. Since the official Docker containers of Restic and Rclone are installed automatically, no additional installation is required. All that is needed is a Unix system (Linux or macOS) on which Docker containers can be run.
 
 [Restic](https://restic.net/) is an open source backup utility to protect your data by safely storing and restoring incremental backups. It is easy to use, efficient and reliable and offers a straightforward and flexible solution for backing up and restoring data. With Restic, you can manage your backup process, encrypt your data, store it and ensure the security and accessibility of your important files.
 
@@ -10,7 +10,7 @@ Welcome to the Backup Scripts Repository! This small private project aims to pro
 
 The combination of Restic and Rclone provides a flexible and robust solution for performing backups that ensures the security and integrity of your data. The scripts provided in this repository simplify the configuration and execution of backup operations and make it easy for you to set up and maintain a reliable backup system.
 
-Only basic command line knowledge is required for use and installation. Restic and Rclone are installed exclusively via the official Docker containers of the respective projects. The automation of the individually created backup jobs can be realised via cron jobs or similar. The scripts are not connected to Restic or Rclone. No liability is assumed for the use or loss of data.
+Only basic command line knowledge is required for use and installation. The automation of the individually created backup jobs can be realised via cron jobs or similar. The scripts are not connected to Restic or Rclone. No liability is assumed for the use or loss of data.
 
 ### Features
 - Local and remote backups: The scripts support both local and remote backup scenarios. You can choose to back up your data only to a local directory or use different cloud storage providers supported by Rclone.
@@ -101,7 +101,7 @@ To install and set up the project, please follow the steps below:
 
 ###  Setting up a backup job ###
 
-To create a backup job, a job template is provided. The template BaseJob.sh can be found under "BackupScripts>Jobs". By creating a copy, the template can be adapted to the desired backup job. For this purpose, a number of variables are provided which can be used to configure the backup job. Please do not change the names of the variables or the area below them. It is also not necessary to change the files in the executor directory, with the exception of the Notifier.sh for setting up your own notification interfaces.
+Once the setup is complete, any number of backup jobs can be created. To quickly and easily create a backup job, a job template is provided. The BaseJob.sh template can be found under "BackupScripts>Jobs". By creating a copy, the template can be customized to the desired backup job. For this purpose, a number of variables are available that can be used to configure the backup job. Please do not change the names of the variables or the range under them. It is also not necessary to change the files in the executor directory, with the exception of Notifier.sh for setting up custom notification interfaces.
 
 A backup job consists of a total of four sub-processes:
 1. **Restic** Backup: Here, the source directory is scanned and a snapshot is added to the repository. Since in some cases Docker containers have to be stopped for this, a corresponding function is implemented. This can be used to stop and restart individual or all active containers for the duration of the backup.
@@ -120,8 +120,8 @@ The most important variables to configure are:
 - `job_name`: The name of the script or the backup job. Must be unique, as this is used to detect whether the backup job is already running.
 - `home_path`: The path to the "BackupScripts" directory containing the script and its utilities.
 - `hostname`: The name used to identify your system in the snapshots.
-- `source`: The source directory to be backed up.
-- `repo`: The path to the backup repository where the backups will be stored.
+- `source`: The source directory to be backed up. Support for Docker volume propagation! E.G. "/PATH/TO/DATA:rw,slave" 
+- `repo`: The path to the backup repository where the backups will be stored. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave"
 - `password_file`: The file name containing the password for the backup repository.
 - `tags`: Tags to be assigned to the snapshots of the backup.
 - `filter_file`: Restic allows you to set a filter file. To set it up, see the documentation. 
