@@ -46,8 +46,8 @@ To install and set up the project, please follow the steps below:
   - The script is designed to run on a Unix-like operating system such as Linux or macOS.
 
 - **Dependencies**
-  - Docker: The host system should have Docker installed and properly configured to run containers.
-  - Restic and Rclone: The Docker images Restic and Rclone are required to run the script. If the images are not available locally, they will be downloaded automatically. Make sure the system has access to the internet or provide the images locally.
+- Docker: The host system should have Docker installed and properly configured to run containers.
+  - Restic and Rclone: The official Docker images [Restic](https://hub.docker.com/r/restic/restic) and [Rclone](https://hub.docker.com/r/rclone/rclone) are used for execution and installed automatically. Ensure that the system has access to the Internet. Otherwise, the images must be deployed locally
 
 - **Setup/Job Configuration**
   - You should know how to edit the job template included in the script to define the required values for your backup tasks. These values include the job name, source directory, repository path, password file, tags, and other options specific to Restic and Rclone.
