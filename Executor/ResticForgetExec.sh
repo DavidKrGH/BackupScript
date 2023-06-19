@@ -102,7 +102,7 @@ else                                # Stop execution
     exit 0
 fi
 
-cmd="docker run --rm --name ResticForget \
+cmd="docker run --rm --name $job_name-ResticForget \
     --volume $home_path:/home \
     --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \

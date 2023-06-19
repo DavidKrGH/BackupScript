@@ -10,7 +10,7 @@
 #================================ BackupScripts ================================#
 #################################################################################
                                                                                 #     
-job_name="ChangeMeToUniqueName"                                                 # Unique job name. "_" are not allowed!!!
+job_name="ChangeMeToUniqueName"                                                 # Unique job name. Do not use space or underscore!!!
                                                                                 #
 home_path="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory. Does not support Docker volume propagation!
                                                                                 #
