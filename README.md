@@ -120,8 +120,8 @@ The most important variables to configure are:
 - `job_name`: The name of the script or the backup job. Must be unique, as this is used to detect whether the backup job is already running.
 - `home_path`: The path to the "BackupScripts" directory containing the script and its utilities.
 - `hostname`: The name used to identify your system in the snapshots.
-- `source`: The source directory to be backed up. Support for Docker volume propagation! E.G. "/PATH/TO/DATA:rw,slave" 
-- `repo`: The path to the backup repository where the backups will be stored. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave"
+- `source`: The source directory to be backed up. Support for [Docker volume propagation](https://docs.docker.com/storage/bind-mounts/)! E.G. "/PATH/TO/DATA:rw,slave".  
+- `repo`: The path to the backup repository where the backups will be stored. Support for [Docker volume propagation](https://docs.docker.com/storage/bind-mounts/)! E.G. "/PATH/TO/REPO:rw,slave"
 - `password_file`: The file name containing the password for the backup repository.
 - `tags`: Tags to be assigned to the snapshots of the backup.
 - `filter_file`: Restic allows you to set a filter file. To set it up, see the documentation. 
