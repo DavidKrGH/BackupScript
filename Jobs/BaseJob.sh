@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.1
+# BackupScripts version 1.0.2
 #################################### License ####################################
 # MIT License Copyright (c) 2023 David Krumm                                    #
 # All rights reserved.                                                          #
@@ -18,9 +18,9 @@ hostname="HOSTNAME"                                                             
                                                                                 #
 ############################## Restic ###########################################
                                                                                 #
-source="/PATH/TO/DATA"                                                          # Source directory to be backed up. Support for Docker volume propagation! E.G. "/PATH/TO/DATA:rw,slave"
+source="/PATH/TO/DATA:ro"                                                       # Source directory to be backed up. Support for Docker volume propagation! E.G. "/PATH/TO/DATA:rw,slave" ro=read-only, rw=read-write 
                                                                                 #
-repo="/PATH/TO/REPO"                                                            # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave"
+repo="/PATH/TO/REPO"                                                            # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave" ro=read-only, rw=read-write 
                                                                                 #
 password_file="restic-repo.password"                                            # File in Config/ResticConfig. Insert yor repository password first.
                                                                                 #
