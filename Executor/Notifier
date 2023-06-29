@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.2
+# BackupScripts version 1.0.3
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -9,8 +9,9 @@
 ################################# Parameters ################################
 home_path="$1"                                                              # Path to the BackupScript directory
 job_name="$2"                                                               # Name of the current job
-importance="$3"                                                             # Level of importance of the message
-message="$4"                                                                # Message to send
+channel="$3"                                                                # Channel of the message output
+args="$4"                                                                   # Specific argument
+message="$5"                                                                # Message to send
 ################################# Variables ################################
 timestamp="$(date +%F_%T)"                                                  # Log timestamp
 # Path to logfile
@@ -36,36 +37,45 @@ to_logfile() {
     echo "$msg" >> "$log_file"
 }
 
-to_system_notification() {                                                           #
-    # Sending a high priority message to the system notification, log and log file   #
-    local msg="$1"                                                                   #
-    #"/usr/local/emhttp/webGui/scripts/notify" -i warning -s "$job_name" -d "$msg"   # Uncommend this if you use a Unraid System
-}                                                                                    # Replace the command to adapt the function to your system
+to_unraid_notification() {
+    # Send to Unraid notification system
+    local severity="$1"
+    local msg="$2"
+    "/usr/local/emhttp/webGui/scripts/notify" -i "$severity" -e "BackupScripts" -s "$job_name" -d "$msg"
+}
 
-to_mail() {                                                                     
+to_mail() {
     local msg="$1"
     #
-    # Enter your commands for sending mails here
+    # Implement your code
+    #
+}
+
+implement_your_nofification_system() {
+    local msg="$1"
+    #
+    # Implement your code
     #
 }
 
 ################################# Send ######################################
 
-if [[ "$importance" == -1 ]]; then      # Log without timestamp
+if [[ "$channel" == -1 ]]; then      # Log without timestamp
     to_terminal "$message"
     to_logfile "$message"
     
-elif [[ "$importance" == 0 ]]; then
+elif [[ "$channel" == 0 ]]; then
     to_terminal "$timestamp - ERROR: No level set for Notification"
     to_logfile "$timestamp - ERROR: No level set for Notification"
     exit 1
 
-elif [[ "$importance" == 1 ]]; then     # Message to logfile
+elif [[ "$channel" == 1 ]]; then     # Message to logfile
     to_terminal "$timestamp - $message"
     to_logfile "$timestamp - $message"
 
-elif [[ "$importance" == 2 ]]; then     # Message to the system notification
-    to_terminal "$timestamp - $message"
-    to_logfile "$timestamp - $message"
-    to_system_notification "$message"      
-fi
+elif [[ "$channel" == 2 ]]; then     # Message to notification system
+    # to_unraid_notification "$args" "$message"                             # Uncomment if you use Unraid as system
+    # to_mail                                                               # Implement your code to use
+    # implement_your_nofification_system                                    # Implement your code to use
+    true
+fi                                                     

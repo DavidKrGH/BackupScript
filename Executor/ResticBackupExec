@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.2
+# BackupScripts version 1.0.3
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -41,9 +41,10 @@ fi
 ################################## Funktions ################################
 
 call_notifier() {
-    local importance="$1"
-    local mes="$2"
-    "$home_path/Executor/Notifier.sh" "$home_path" "$job_name" "$importance" "$mes"
+    local channel="$1"
+    local args="$2"
+    local mes="$3"
+    "$home_path/Executor/Notifier" "$home_path" "$job_name" "$channel" "$args" "$mes"
 }
 
 reverse_array() {
@@ -74,11 +75,11 @@ start_stop_containers() {
     local command="$1"
     shift
     local containers=("$@")
-    call_notifier "1" ""
-    call_notifier "1" "Execute '${command}' for docker containers: '$(convert_array_to_print "${containers[@]}")'"
+    call_notifier "1" "" ""
+    call_notifier "1" "" "Execute '${command}' for docker containers: '$(convert_array_to_print "${containers[@]}")'"
 
     for con in "${containers[@]}"; do
-        call_notifier "1" "Execute '$command' for '$con' ..."
+        call_notifier "1" "" "Execute '$command' for '$con' ..."
         docker "$command" "$con"
 
         # Wait for container to stop/start within a timeout period
@@ -94,13 +95,13 @@ start_stop_containers() {
                 status="exited"
             fi
             if [[ "$container_status" == "$status" ]]; then
-                call_notifier "1" "$con has successfully changed its status"
+                call_notifier "1" "" "$con has successfully changed its status"
                 break
             fi
             if (( elapsed >= timeout )); then
-                call_notifier "-1" ""
-                call_notifier "2" "ERROR $job_name: Timeout container '$con' failed to '$command'"
-                call_notifier "-1" ""
+                call_notifier "-1" "" ""
+                call_notifier "1" "" "ERROR $job_name: Timeout container '$con' failed to '$command'"
+                call_notifier "-1" "" ""
                 exit 1
             fi
             sleep "$interval"
@@ -112,8 +113,8 @@ start_stop_containers() {
 
 ################################### Backup ##################################
 
-call_notifier "1" ""
-call_notifier "1" "Starting 'backup' job of '$source'"
+call_notifier "1" "" ""
+call_notifier "1" "" "Starting 'backup' job of '$source'"
 
 ################################### Stop Docker Container
 
@@ -130,8 +131,8 @@ if [[ "$handle_docker" == "true" ]]; then
     fi
 
 else
-    call_notifier "1" ""
-    call_notifier "1" "Container handling deactivated"
+    call_notifier "1" "" ""
+    call_notifier "1" "" "Container handling deactivated"
 fi
 
 ################################### Restic Backup
@@ -149,13 +150,13 @@ cmd="docker run --rm --name $job_name-ResticBackup \
      $options"
 
 # progress message
-call_notifier "1" ""
-call_notifier "1" "Backup in progress ... "
-call_notifier "1" ""
-call_notifier "1" "$cmd"
+call_notifier "1" "" ""
+call_notifier "1" "" "Backup in progress ... "
+call_notifier "1" "" ""
+call_notifier "1" "" "$cmd"
 
 output=$(eval $cmd)
-call_notifier "-1" "$output"
+call_notifier "-1" "" "$output"
 exit_code=$?
 
 ################################### Start Docker
@@ -177,12 +178,12 @@ fi
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    call_notifier "1" ""
-    call_notifier "1" "Completed 'backup' job of '$source' successfully"
+    call_notifier "1" "" ""
+    call_notifier "1" "" "Completed 'backup' job of '$source' successfully"
     exit 0
 else
-    call_notifier "-1" ""
-    call_notifier "2" "ERROR $job_name: Backup of '$source' failed with exit_code=$exit_code"
-    call_notifier "-1" ""
+    call_notifier "-1" "" ""
+    call_notifier "1" "" "ERROR $job_name: Backup of '$source' failed with exit_code=$exit_code"
+    call_notifier "-1" "" ""
     exit 1
 fi
