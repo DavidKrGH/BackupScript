@@ -5,6 +5,9 @@
 
 ########################## excludes ##########################
 #- exclude pattern
-#- Directory/**                     # Exclude complete directory
-- *.log                             # Exclusion of logging files
 
+# Exclude complete directory
+#- Directory/**
+
+# Exclusion of logging files
+- *.log
