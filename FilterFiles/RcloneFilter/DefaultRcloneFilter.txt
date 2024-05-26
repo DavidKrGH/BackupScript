@@ -11,3 +11,6 @@
 
 # Exclusion of logging files
 - *.log
+
+# Exclusion of logging files
+- *.log
