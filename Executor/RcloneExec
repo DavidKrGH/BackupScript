@@ -7,14 +7,12 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-home_path="$1"                                                              # Path to the BackupScript directory
-job_name="$2"                                                               # Name of the current job
-schedule="$3"                                                               # Pattern for the submission of a timetable for execution
-source="$4"                                                                 # Directory to be backed up
-destination="$5"                                                            # Destination directory of the data backup
-filter_options="$6"                                                         # Settings for filtering files
-logging_options="$7"                                                        # Settings for the logging of rclone
-options="$8"                                                                # Additional rclone options
+schedule="$1"                                                               # Pattern for the submission of a timetable for execution
+source="$2"                                                                 # Directory to be backed up
+destination="$3"                                                            # Destination directory of the data backup
+filter_options="$4"                                                         # Settings for filtering files
+logging_options="$5"                                                        # Settings for the logging of rclone
+options="$6"                                                                # Additional rclone options
 ######################### Docker Volume Propagation #########################
 
 if [[ $source == *":"* ]]; then
@@ -30,27 +28,27 @@ call_notifier() {
     local channel="$1"
     local args="$2"
     local mes="$3"
-    "$home_path/Executor/Notifier" "$home_path" "$job_name" "$channel" "$args" "$mes"
+    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
 }
 
 evaluate_lock() {
     local lock_reason="rclone"
-    "$home_path/Executor/LockHandler" "$home_path" "check" "$job_name" "$lock_reason"
+    "$HOME_PATH/Executor/LockHandler" "check" "$lock_reason"
     exit_code=$?
     if [[ $exit_code -eq 99 ]]; then    # Lock file is set. Exit script normaly
         exit 0
     elif [[ $exit_code -ne 0 ]]; then   # Faild to evaluate. Exit with error
-        call_notifier "1" "" "ERROR $job_name: Failed to evaluate '$lock_reason'"
+        call_notifier "1" "" "ERROR $JOB_NAME: Failed to evaluate '$lock_reason'"
         exit 1
     fi                                  # No lock active. Lock has been set. Execution continues
 }
 
 release_lock() {
     local lock_reason="rclone"
-    "$home_path/Executor/LockHandler" "$home_path" "release" "$job_name" "$lock_reason"
+    "$HOME_PATH/Executor/LockHandler" "release" "$lock_reason"
     exit_code=$?
     if [[ "$exit_code" != 0 ]]; then    # Faild to evaluate. Exit with error
-        call_notifier "1" "" "ERROR $job_name: Failed to release '$lock_reason'"
+        call_notifier "1" "" "ERROR $JOB_NAME: Failed to release '$lock_reason'"
         exit 1
     fi
 }
@@ -106,10 +104,10 @@ else                                # Stop execution
     exit 0
 fi
 
-cmd="docker run --rm --name $job_name-RcloneBackup \
-    --volume $home_path/Config/RcloneConfig:/config/rclone \
-    --volume $home_path/LogFiles:/LogFiles \
-    --volume $home_path/FilterFiles/RcloneFilter:/FilterFiles \
+cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
+    --volume $HOME_PATH/Config/RcloneConfig:/config/rclone \
+    --volume $HOME_PATH/LogFiles:/LogFiles \
+    --volume $HOME_PATH/FilterFiles/RcloneFilter:/FilterFiles \
     --volume $source:/source$source_prop \
     --user $(id -u):$(id -g) \
     rclone/rclone sync /source $destination \
@@ -132,7 +130,7 @@ if [[ "$exit_code" == 0 ]]; then
     exit 0
 else
     call_notifier "-1" "" ""
-    call_notifier "1" "" "ERROR $job_name: Rclone to '$destination' failed with exit_code=$exit_code"
+    call_notifier "1" "" "ERROR $JOB_NAME: Rclone to '$destination' failed with exit_code=$exit_code"
     call_notifier "-1" "" ""
     exit 1
 fi

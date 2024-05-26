@@ -10,9 +10,9 @@
 #================================ BackupScripts ================================#
 #################################################################################
                                                                                 #     
-job_name="ChangeMeToUniqueName"                                                 # Unique job name. Do not use space or underscore!!!
+JOB_NAME="ChangeMeToUniqueName"                                                 # Unique job name. Do not use space or underscore!!!
                                                                                 #
-home_path="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory. Does not support Docker volume propagation!
+HOME_PATH="/PATH/TO/BackupScripts"                                              # Path to BackupScripts directory. Does not support Docker volume propagation!
                                                                                 #
 hostname="HOSTNAME"                                                             # Name to identify your System in Snapshots
                                                                                 #
@@ -75,48 +75,52 @@ rclone_options=""                                                               
 
  
 
+############################## Export Env Variables #############################
+
+export HOME_PATH JOB_NAME
+
 ############################## Functions ########################################
 
 call_notifier() {
     local channel="$1"
     local args="$2"
     local mes="$3"
-    "$home_path/Executor/Notifier" "$home_path" "$job_name" "$channel" "$args" "$mes"
+    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
 }
 
 evaluate_lock() {
     local lock_reason="running"
-    "$home_path/Executor/LockHandler" "$home_path" "check" "$job_name" "$lock_reason"
+    "$HOME_PATH/Executor/LockHandler" "check" "$lock_reason"
     exit_code=$?
     if [[ $exit_code -eq 99 ]]; then    # Lock file is set. Exit script normaly
         call_notifier "2" "normal" "Lock for 'running' is already set"
         exit 0
     elif [[ $exit_code -ne 0 ]]; then   # Faild to evaluate. Exit with error
-        call_notifier "1" "" "ERROR $job_name: Failed to evaluate '$lock_reason'"
-        call_notifier "2" "warning" "ERROR $job_name: Failed to evaluate '$lock_reason'"
+        call_notifier "1" "" "ERROR $JOB_NAME: Failed to evaluate '$lock_reason'"
+        call_notifier "2" "warning" "ERROR $JOB_NAME: Failed to evaluate '$lock_reason'"
         exit 1
     fi                                  # No lock active. Lock has been set. Execution continues
 }
 
 release_lock() {
     local lock_reason="running"
-    "$home_path/Executor/LockHandler" "$home_path" "release" "$job_name" "$lock_reason"
+    "$HOME_PATH/Executor/LockHandler" "release" "$lock_reason"
     exit_code=$?
     if [[ "$exit_code" != 0 ]]; then    # Faild to evaluate. Exit with error
-        call_notifier "2" "" "ERROR $job_name: Failed to release '$lock_reason'"
+        call_notifier "2" "" "ERROR $JOB_NAME: Failed to release '$lock_reason'"
     fi
 }
 
 ############################## Jobs #############################################
 
 call_notifier "-1" "" ""
-call_notifier "1" "" "Starting '$job_name' ..."
+call_notifier "1" "" "Starting '$JOB_NAME' ..."
 
 evaluate_lock
 
 ############################## Backup 
 
-"$home_path/Executor/ResticBackupExec" "$home_path" "$job_name" "$hostname" \
+"$HOME_PATH/Executor/ResticBackupExec" "$hostname" \
 "$source" "$repo" "$password_file" "$filter_file" "$tags" "$restic_options" \
 "$handle_docker" "$stop_start_remaining_container" "$reverse_on_start" "${container_list[@]}"
 
@@ -134,7 +138,7 @@ keep_rules="--keep-within-hourly $hourly_for --keep-within-daily $daily_for"
 keep_rules+=" --keep-within-weekly $weekly_for --keep-within-monthly $monthly_for"
 keep_rules+=" --keep-within-yearly $yearly_for"
 
-"$home_path/Executor/ResticForgetExec" "$home_path" "$job_name" "$repo" \
+"$HOME_PATH/Executor/ResticForgetExec" "$repo" \
 "$password_file" "$schedule_forget" "$keep_rules"
 
 forget_exit_code=$?
@@ -147,7 +151,7 @@ fi
 
 ############################## Prune
 
-"$home_path/Executor/ResticPruneExec" "$home_path" "$job_name" "$repo" \
+"$HOME_PATH/Executor/ResticPruneExec" "$repo" \
 "$password_file" "$schedule_prune"
 
 prune_exit_code=$?
@@ -160,8 +164,8 @@ fi
 
 ############################## Rclone 
 
-"$home_path/Executor/RcloneExec" "$home_path" "$job_name" "$schedule_rclone" "$repo" "$dest_remote" \
-"" "--log-file /LogFiles/${job_name}_logging.log --log-level=$log_level" "$rclone_options"
+"$HOME_PATH/Executor/RcloneExec" "$schedule_rclone" "$repo" "$dest_remote" \
+"" "--log-file /LogFiles/${JOB_NAME}_logging.log --log-level=$log_level" "$rclone_options"
 
 rclone_exit_code=$?
 # If Rclones fails
@@ -178,7 +182,7 @@ if [[ "$notification_after_completion" = "true" ]]; then
 fi
 release_lock
 call_notifier "1" "" ""
-call_notifier "1" "" "Finished '$job_name'"
+call_notifier "1" "" "Finished '$JOB_NAME'"
 call_notifier "-1" "" ""
 
 #################################################################################

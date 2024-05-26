@@ -7,14 +7,12 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-home_path="$1"                                                              # Path to the BackupScript directory
-check_or_release="$2"                                                       # Command: "Check" or "Release" lock files
-job_name="$3"                                                               # Name of the current job
-lock="$4"                                                                   # Reason for the lock
+check_or_release="$1"                                                       # Command: "Check" or "Release" lock files
+lock="$2"                                                                   # Reason for the lock
 ################################# Variables ################################
 
 # Set lock file path
-lock_file="$home_path/ActiveLocks/${job_name}_${lock}_$(date +%Y%m%d).lock"
+lock_file="$HOME_PATH/ActiveLocks/${JOB_NAME}_${lock}_$(date +%Y%m%d).lock"
 mkdir -p "$(dirname "$lock_file")"
 
 ################################# Funktions #################################
@@ -23,7 +21,7 @@ call_notifier() {
     local channel="$1"
     local args="$2"
     local mes="$3"
-    "$home_path/Executor/Notifier" "$home_path" "$job_name" "$channel" "$args" "$mes"
+    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
 }
 
 check_lock() {
@@ -46,7 +44,7 @@ delete_lock_files() {
     current_date=$(date +%Y%m%d)
 
     # Find all lock files with the same job name
-    find "$home_path/ActiveLocks" -name "${job_name}_*.lock" -type f |
+    find "$HOME_PATH/ActiveLocks" -name "${JOB_NAME}_*.lock" -type f |
     while IFS= read -r file; do
         # Extract the lock part from the lock file name
         file_lock=$(basename "$file" | sed -n 's/.*_\([^_]*\)_\([0-9]\{8\}\).lock$/\1/p')
@@ -57,7 +55,7 @@ delete_lock_files() {
                 # Delete the lock file if the lock is set to "running"
                 rm "$file"
                 call_notifier "1" "" ""
-                call_notifier "1" "" "Delete Lock 'running' for '$job_name'"
+                call_notifier "1" "" "Delete Lock 'running' for '$JOB_NAME'"
             elif [[ "$file_date" -lt "$current_date" ]]; then
                 # Delete the lock file if the date is older than today
                 rm "$file"
@@ -76,6 +74,6 @@ if [[ "$check_or_release" == "check" ]]; then               # Call check functio
 elif [[ "$check_or_release" == "release" ]]; then           # Call release function
     delete_lock_files
 else                                                        # Raise error. Wrong command
-    call_notifier "1" "" "ERROR: $job_name LockHandler command '$check_or_release' unknown"
+    call_notifier "1" "" "ERROR: $JOB_NAME LockHandler command '$check_or_release' unknown"
     exit 1
 fi

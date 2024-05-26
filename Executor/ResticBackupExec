@@ -7,20 +7,18 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-home_path="$1"                                                              # Path to the BackupScript directory
-job_name="$2"                                                               # Name of the current job
-hostname="$3"                                                               # Set host name for detection of snapshots in the repo
-source="$4"                                                                 # Directory to be backed up
-repo="$5"                                                                   # Destination directory of the data backup
-password_file="$6"                                                          # Password file of restic repo
-filter_file="$7"                                                            # Path to filter file
-tags="$8"                                                                   # Tags for marking snapshots
-options="$9"                                                                # Additional Restic options
+hostname="$1"                                                               # Set host name for detection of snapshots in the repo
+source="$2"                                                                 # Directory to be backed up
+repo="$3"                                                                   # Destination directory of the data backup
+password_file="$4"                                                          # Password file of restic repo
+filter_file="$5"                                                            # Path to filter file
+tags="$6"                                                                   # Tags for marking snapshots
+options="$7"                                                                # Additional Restic options
 ################################ Docker Handling ###########################
-handle_docker="${10}"                                                       # "true" or "false" to activate or deactivate Docker handling
-stop_start_remaining_container="${11}"                                      # "true" to stop and start all "running" containers before backup, "false" to skip
-reverse_on_start="${12}"                                                    # "true" to reverse the order of the container_list at start-up
-shift 12                                                                    #
+handle_docker="$8"                                                          # "true" or "false" to activate or deactivate Docker handling
+stop_start_remaining_container="$9"                                         # "true" to stop and start all "running" containers before backup, "false" to skip
+reverse_on_start="${10}"                                                    # "true" to reverse the order of the container_list at start-up
+shift 10                                                                    #
 container_list=("$@")                                                       # List and sequence of containers to be stopped
 ######################### Docker Volume Propagation #########################
 
@@ -44,7 +42,7 @@ call_notifier() {
     local channel="$1"
     local args="$2"
     local mes="$3"
-    "$home_path/Executor/Notifier" "$home_path" "$job_name" "$channel" "$args" "$mes"
+    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
 }
 
 reverse_array() {
@@ -100,7 +98,7 @@ start_stop_containers() {
             fi
             if (( elapsed >= timeout )); then
                 call_notifier "-1" "" ""
-                call_notifier "1" "" "ERROR $job_name: Timeout container '$con' failed to '$command'"
+                call_notifier "1" "" "ERROR $JOB_NAME: Timeout container '$con' failed to '$command'"
                 call_notifier "-1" "" ""
                 exit 1
             fi
@@ -137,9 +135,9 @@ fi
 
 ################################### Restic Backup
 
-cmd="docker run --rm --name $job_name-ResticBackup \
+cmd="docker run --rm --name $JOB_NAME-ResticBackup \
     --hostname $hostname \
-    --volume $home_path:/home \
+    --volume $HOME_PATH:/home \
     --volume $source:/source$source_prop \
     --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \
@@ -183,7 +181,7 @@ if [[ "$exit_code" == 0 ]]; then
     exit 0
 else
     call_notifier "-1" "" ""
-    call_notifier "1" "" "ERROR $job_name: Backup of '$source' failed with exit_code=$exit_code"
+    call_notifier "1" "" "ERROR $JOB_NAME: Backup of '$source' failed with exit_code=$exit_code"
     call_notifier "-1" "" ""
     exit 1
 fi

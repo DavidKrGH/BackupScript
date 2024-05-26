@@ -7,15 +7,13 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-home_path="$1"                                                              # Path to the BackupScript directory
-job_name="$2"                                                               # Name of the current job
-channel="$3"                                                                # Channel of the message output
-args="$4"                                                                   # Specific argument
-message="$5"                                                                # Message to send
+channel="$1"                                                                # Channel of the message output
+args="$2"                                                                   # Specific argument
+message="$3"                                                                # Message to send
 ################################# Variables ################################
 timestamp="$(date +%F_%T)"                                                  # Log timestamp
 # Path to logfile
-log_file="$home_path/LogFiles/${job_name}_logging.log"                      # Path to log file
+log_file="$HOME_PATH/LogFiles/${JOB_NAME}_logging.log"                      # Path to log file
 mkdir -p "$(dirname "$log_file")"
 #############################################################################
 
@@ -41,7 +39,7 @@ to_unraid_notification() {
     # Send to Unraid notification system
     local severity="$1"
     local msg="$2"
-    "/usr/local/emhttp/webGui/scripts/notify" -i "$severity" -e "BackupScripts" -s "$job_name" -d "$msg"
+    "/usr/local/emhttp/webGui/scripts/notify" -i "$severity" -e "BackupScripts" -s "$JOB_NAME" -d "$msg"
 }
 
 to_mail() {
