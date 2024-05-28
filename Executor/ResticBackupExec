@@ -137,7 +137,7 @@ cmd="docker run --rm --name $JOB_NAME-ResticBackup \
     restic/restic \
     --password-file=/home/Config/ResticConfig/$password_file \
     -r /repo backup /source $tags \
-    --exclude-file=/home/FilterFiles/ResticFilter/$filter_file \
+    --exclude-file=/home/Config/FilterConfig/ResticFilter/$filter_file \
      $options"
 
 # progress message
