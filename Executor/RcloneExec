@@ -7,12 +7,11 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-schedule="$1"                                                               # Pattern for the submission of a timetable for execution
-source="$2"                                                                 # Directory to be backed up
-destination="$3"                                                            # Destination directory of the data backup
-filter_options="$4"                                                         # Settings for filtering files
-logging_options="$5"                                                        # Settings for the logging of rclone
-options="$6"                                                                # Additional rclone options
+source="$1"                                                                 # Directory to be backed up
+destination="$2"                                                            # Destination directory of the data backup
+filter_options="$3"                                                         # Settings for filtering files
+logging_options="$4"                                                        # Settings for the logging of rclone
+options="$5"                                                                # Additional rclone options
 ######################### Docker Volume Propagation #########################
 
 if [[ $source == *":"* ]]; then
@@ -22,87 +21,7 @@ else
     source_prop=""
 fi
 
-################################# Funktions #################################
-
-call_notifier() {
-    local channel="$1"
-    local args="$2"
-    local mes="$3"
-    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
-}
-
-evaluate_lock() {
-    local lock_reason="rclone"
-    "$HOME_PATH/Executor/LockHandler" "check" "$lock_reason"
-    exit_code=$?
-    if [[ $exit_code -eq 99 ]]; then    # Lock file is set. Exit script normaly
-        exit 0
-    elif [[ $exit_code -ne 0 ]]; then   # Faild to evaluate. Exit with error
-        call_notifier "1" "" "ERROR $JOB_NAME: Failed to evaluate '$lock_reason'"
-        exit 1
-    fi                                  # No lock active. Lock has been set. Execution continues
-}
-
-release_lock() {
-    local lock_reason="rclone"
-    "$HOME_PATH/Executor/LockHandler" "release" "$lock_reason"
-    exit_code=$?
-    if [[ "$exit_code" != 0 ]]; then    # Faild to evaluate. Exit with error
-        call_notifier "1" "" "ERROR $JOB_NAME: Failed to release '$lock_reason'"
-        exit 1
-    fi
-}
-
-check_date() {
-# Usage: check_date <pattern>
-#  - <pattern> can be one of the following:
-#     - "always": Execute the function every time it is called.
-#     - "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun": Execute the function on the specified days of the week.
-#       Replace the example days with your desired days.
-#     - "monthly: <day>": Execute the function on the specified day of the month.
-#       Replace <day> with the desired day of the month (e.g., "1" for the 1st day, "15" for the 15th day).
-#     - "never": Never execute the function.
-    local input="$1"
-    local current_date=$(date +%F)                              # Get current date in YYYY-MM-DD format
-    release_lock                                                # Release outdated locks first
-
-    if [[ "$input" == "always" ]]; then
-        return 0                                                # Match found, return true
-    elif [[ "$input" == weekly* ]]; then
-        local days="${input#weekly: }"                          # Extract the days of the week
-        local current_day_of_week=$(date +%a)                   # Get current day of the week (e.g., Mon, Tue)
-
-        if [[ "$days" == *"$current_day_of_week"* ]]; then
-            evaluate_lock                                       # Check the current lock status
-            return 0                                            # Match found, return true
-        fi
-    elif [[ "$input" == monthly* ]]; then
-        local day_of_month="${input#monthly: }"                 # Extract the day of the month
-        local current_day_of_month=$(date +%d)                  # Get current day of the month
-
-        if [[ "$current_day_of_month" -eq "$day_of_month" ]]; then
-            evaluate_lock                                       # Check the current lock status
-            return 0                                            # Match found, return true
-        fi
-    elif [[ "$input" == "never" ]]; then
-        return 1                                                # Match found, return false
-    fi
-
-    return 1                                                    # No match found, return false
-}
-
 ################################# Backup ####################################
-
-# Check schedule for execution 
-if check_date "$schedule"; then     # Continue with the backup
-    call_notifier "1" "" ""
-    call_notifier "1" "" "Starting 'rclone' job to $destination"
-else                                # Stop execution
-    call_notifier "1" "" ""
-    call_notifier "1" "" "Skip 'rclone' because of schedule '$schedule'."
-    release_lock                    # Release lock when scheduled day is over
-    exit 0
-fi
 
 cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
     --volume $HOME_PATH/Config/RcloneConfig:/config/rclone \
@@ -114,10 +33,10 @@ cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
     $filter_options $logging_options $options"
 
 # progress message
-call_notifier "1" "" ""
-call_notifier "1" "" "Backup in progress ... "
-call_notifier "1" "" ""
-call_notifier "1" "" "$cmd"
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "Backup in progress ... "
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "$cmd"
 
 eval $cmd
 exit_code=$?
@@ -125,12 +44,12 @@ exit_code=$?
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    call_notifier "1" "" ""
-    call_notifier "1" "" "Completed 'backup' job to '$destination' successfully"
+    $NOTIFIER --channel "file"
+    $NOTIFIER --channel "file" --message "Completed 'backup' job to '$destination' successfully"
     exit 0
 else
-    call_notifier "-1" "" ""
-    call_notifier "1" "" "ERROR $JOB_NAME: Rclone to '$destination' failed with exit_code=$exit_code"
-    call_notifier "-1" "" ""
+    $NOTIFIER --channel "file" --timestamps "false"
+    $NOTIFIER --channel "system" --args "warning" --message "ERROR $JOB_NAME: Rclone to '$destination' failed with exit_code=$exit_code"
+    $NOTIFIER --channel "file" --timestamps "false"
     exit 1
 fi

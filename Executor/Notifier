@@ -7,7 +7,7 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-timestamp="$(date +%F_%T) - "                                                  # Log timestamp
+timestamp="$(date +%F_%T) - "                                               # Log timestamp
 log_file="$HOME_PATH/LogFiles/${JOB_NAME}_$(date +'%Y-%m').log"             # Path to log file
 mkdir -p "$(dirname "$log_file")"
 
@@ -105,8 +105,9 @@ elif [[ "$channel" == "system" ]]; then             # Message to notification sy
     to_logfile "${timestamp}${message}"
     # to_unraid_notification "$args" "$message"     # Uncomment if you use Unraid as syste
     # implement_your_nofification_system            # Implement your code to use
-    true
+
 elif [[ "$channel" == "mail" ]]; then               # Message to notification system
+    to_terminal "${timestamp}${message}"
+    to_logfile "${timestamp}${message}"
     # to_mail                                       # Implement your code to use
-    true
 fi                                                     

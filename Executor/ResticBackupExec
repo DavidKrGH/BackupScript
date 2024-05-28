@@ -38,13 +38,6 @@ fi
 
 ################################## Funktions ################################
 
-call_notifier() {
-    local channel="$1"
-    local args="$2"
-    local mes="$3"
-    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
-}
-
 reverse_array() {
     local original_array=("$@")
     local reversed_array=()
@@ -73,11 +66,11 @@ start_stop_containers() {
     local command="$1"
     shift
     local containers=("$@")
-    call_notifier "1" "" ""
-    call_notifier "1" "" "Execute '${command}' for docker containers: '$(convert_array_to_print "${containers[@]}")'"
+    $NOTIFIER --channel "file"
+    $NOTIFIER --channel "file" --message "Execute '${command}' for docker containers: '$(convert_array_to_print "${containers[@]}")'"
 
     for con in "${containers[@]}"; do
-        call_notifier "1" "" "Execute '$command' for '$con' ..."
+        $NOTIFIER --channel "file" --message "Execute '$command' for '$con' ..."
         docker "$command" "$con"
 
         # Wait for container to stop/start within a timeout period
@@ -93,13 +86,13 @@ start_stop_containers() {
                 status="exited"
             fi
             if [[ "$container_status" == "$status" ]]; then
-                call_notifier "1" "" "$con has successfully changed its status"
+                $NOTIFIER --channel "file" --message "$con has successfully changed its status"
                 break
             fi
             if (( elapsed >= timeout )); then
-                call_notifier "-1" "" ""
-                call_notifier "1" "" "ERROR $JOB_NAME: Timeout container '$con' failed to '$command'"
-                call_notifier "-1" "" ""
+                $NOTIFIER --channel "file" --timestamps "false"
+                $NOTIFIER --channel "file" --message "ERROR $JOB_NAME: Timeout container '$con' failed to '$command'"
+                $NOTIFIER --channel "file" --timestamps "false"
                 exit 1
             fi
             sleep "$interval"
@@ -111,8 +104,8 @@ start_stop_containers() {
 
 ################################### Backup ##################################
 
-call_notifier "1" "" ""
-call_notifier "1" "" "Starting 'backup' job of '$source'"
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "Starting 'backup' job of '$source'"
 
 ################################### Stop Docker Container
 
@@ -129,8 +122,8 @@ if [[ "$handle_docker" == "true" ]]; then
     fi
 
 else
-    call_notifier "1" "" ""
-    call_notifier "1" "" "Container handling deactivated"
+    $NOTIFIER --channel "file"
+    $NOTIFIER --channel "file" --message "Container handling deactivated"
 fi
 
 ################################### Restic Backup
@@ -148,13 +141,13 @@ cmd="docker run --rm --name $JOB_NAME-ResticBackup \
      $options"
 
 # progress message
-call_notifier "1" "" ""
-call_notifier "1" "" "Backup in progress ... "
-call_notifier "1" "" ""
-call_notifier "1" "" "$cmd"
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "Backup in progress ... "
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "$cmd"
 
 output=$(eval $cmd)
-call_notifier "-1" "" "$output"
+$NOTIFIER --channel "file" --message "$output" --timestamps "false"
 exit_code=$?
 
 ################################### Start Docker
@@ -176,12 +169,12 @@ fi
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    call_notifier "1" "" ""
-    call_notifier "1" "" "Completed 'backup' job of '$source' successfully"
+    $NOTIFIER --channel "file"
+    $NOTIFIER --channel "file" --message "Completed 'backup' job of '$source' successfully"
     exit 0
 else
-    call_notifier "-1" "" ""
-    call_notifier "1" "" "ERROR $JOB_NAME: Backup of '$source' failed with exit_code=$exit_code"
-    call_notifier "-1" "" ""
+    $NOTIFIER --channel "file" --timestamps "false"
+    $NOTIFIER --channel "system" --args "warning" --message "ERROR $JOB_NAME: Backup of '$source' failed with exit_code=$exit_code"
+    $NOTIFIER --channel "file" --timestamps "false"
     exit 1
 fi

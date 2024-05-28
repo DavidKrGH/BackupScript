@@ -20,9 +20,13 @@ notification_after_completion="false"                                           
                                                                                 #
 ############################## Restic ###########################################
                                                                                 #
+                                                                                # Schedule for the execution of the Restic forget process:
+schedule_backup="always"                                                        # "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15"
+                                                                                # Executed only once per day if the weekly or monthly pattern is used.
+                                                                                #
 source="/PATH/TO/DATA:ro"                                                       # Source directory to be backed up. Support for Docker volume propagation! E.G. "/PATH/TO/DATA:rw,slave" ro=read-only, rw=read-write 
                                                                                 #
-repo="/PATH/TO/REPO"                                                            # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave" ro=read-only, rw=read-write 
+repo="/PATH/TO/REPO:rw,slave"                                                   # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave" ro=read-only, rw=read-write 
                                                                                 #
 password_file="restic-repo.password"                                            # File in Config/ResticConfig. Insert yor repository password first.
                                                                                 #
@@ -59,7 +63,7 @@ container_list=("1. Container" "2. Container" "3. Container")                   
                                                                                 #
 ############################## Rclone ###########################################
                                                                                 #
-schedule_rclone="monthly, 10"                                                   # Schedule for running Rclone: "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15" 
+schedule_rclone="monthly: 10"                                                   # Schedule for running Rclone: "never", "always", "weekly: Mon, Tue, Wed, Thu, Fri, Sat, Sun", "monthly: 15" 
                                                                                 # Executed only once per day if the weekly or monthly pattern is used.
                                                                                 #
 dest_remote="RemoteName:/PATH/ON/REMOTE"                                        # Destination remote for Rclone. Does not support Docker volume propagation!
@@ -69,121 +73,173 @@ log_level="INFO"                                                                
 rclone_options=""                                                               # Additional options specific to Restic
                                                                                 #
 #################################################################################
-#     Don't change anything from here if you don't know what you are doing      # 
-#################################################################################
+
               
 
- 
+
+
+
+#################################################################################
+#                                                                               #
+#     Don't change anything from here if you don't know what you are doing      #
+#                                                                               #
+#################################################################################
+
+
+
+########################## Setup File Paths #####################################
+
+NOTIFIER="$HOME_PATH/Executor/Notifier"
+ConditionHandler="$HOME_PATH/Executor/ConditionHandler"
+ResticBackupExec="$HOME_PATH/Executor/ResticBackupExec"
+ResticForgetExec="$HOME_PATH/Executor/ResticForgetExec"
+ResticPruneExec="$HOME_PATH/Executor/ResticPruneExec"
+RcloneExec="$HOME_PATH/Executor/RcloneExec"
 
 ############################## Export Env Variables #############################
 
-export HOME_PATH JOB_NAME
+export HOME_PATH JOB_NAME NOTIFIER
 
-############################## Functions ########################################
+############################## Check Preconditions ##############################
 
-call_notifier() {
-    local channel="$1"
-    local args="$2"
-    local mes="$3"
-    "$HOME_PATH/Executor/Notifier" "$channel" "$args" "$mes"
-}
+preconditions=0
+check_executable() {
+    local file=$1
+    if [ ! -f "$file" ]; then
+        echo "ERROR: $file does not exist."
+        preconditions=1
+    elif [ ! -x "$file" ]; then
+        echo "ERROR: $file exists but is not executable."
+        echo "-> Read the instructions and the setup files in the 'BackupScripts/SetupInstruction' directory."
+        echo "-> Use 'chmod +x $file' to give the file the required rights."
 
-evaluate_lock() {
-    local lock_reason="running"
-    "$HOME_PATH/Executor/LockHandler" "check" "$lock_reason"
-    exit_code=$?
-    if [[ $exit_code -eq 99 ]]; then    # Lock file is set. Exit script normaly
-        call_notifier "2" "normal" "Lock for 'running' is already set"
-        exit 0
-    elif [[ $exit_code -ne 0 ]]; then   # Faild to evaluate. Exit with error
-        call_notifier "1" "" "ERROR $JOB_NAME: Failed to evaluate '$lock_reason'"
-        call_notifier "2" "warning" "ERROR $JOB_NAME: Failed to evaluate '$lock_reason'"
-        exit 1
-    fi                                  # No lock active. Lock has been set. Execution continues
-}
-
-release_lock() {
-    local lock_reason="running"
-    "$HOME_PATH/Executor/LockHandler" "release" "$lock_reason"
-    exit_code=$?
-    if [[ "$exit_code" != 0 ]]; then    # Faild to evaluate. Exit with error
-        call_notifier "2" "" "ERROR $JOB_NAME: Failed to release '$lock_reason'"
+        preconditions=1
     fi
 }
 
+check_directory_exists() {
+    local directory=$(echo "$1" | cut -d':' -f1)
+    if [ ! -d "$directory" ]; then
+    echo "ERROR: The directory $directory does not exist."
+    preconditions=1
+    fi
+}
+
+check_directory_exists "$HOME_PATH"
+check_directory_exists "$source"
+check_directory_exists "$repo"
+
+check_executable "$NOTIFIER"
+check_executable "$ConditionHandler"
+check_executable "$ResticBackupExec"
+check_executable "$ResticForgetExec"
+check_executable "$ResticPruneExec"
+check_executable "$RcloneExec"
+
+if [[ $preconditions != 0 ]]; then
+    exit 1
+fi
+
 ############################## Jobs #############################################
 
-call_notifier "-1" "" ""
-call_notifier "1" "" "Starting '$JOB_NAME' ..."
+$NOTIFIER --channel "file" --timestamps "false"
+$NOTIFIER --channel "file" --message "Starting '$JOB_NAME' ..."
 
-evaluate_lock
+# Check if jobs is already executed
+$ConditionHandler --task "evaluate" --type "execution"
+job_is_already_executed=$?
+if [[ "$job_is_already_executed" == 99 ]]; then
+    exit 0                                          # Job is already executed.
+elif [[ "$job_is_already_executed" == 1 ]]; then
+    exit 1                                          # Something went wrong
+fi
 
 ############################## Backup 
 
-"$HOME_PATH/Executor/ResticBackupExec" "$hostname" \
-"$source" "$repo" "$password_file" "$filter_file" "$tags" "$restic_options" \
-"$handle_docker" "$stop_start_remaining_container" "$reverse_on_start" "${container_list[@]}"
+# Evaluate schedule
+$ConditionHandler --task "evaluate" --type "lock" --process "Backup" --schedule "$schedule_backup"
+evaluation=$?
 
-backup_exit_code=$?
-# If backup fails
-if [[ "$backup_exit_code" != 0 ]]; then
-    call_notifier "2" "warning" "Execution of 'Restic Backup' failed"
-    release_lock
+if [[ "$evaluation" == 0 ]]; then
+    $ResticBackupExec "$hostname" "$source" "$repo" "$password_file" "$filter_file" "$tags" "$restic_options" \
+    "$handle_docker" "$stop_start_remaining_container" "$reverse_on_start" "${container_list[@]}"
+    backup_exit_code=$?
+fi
+
+# If evaluation or ResticForgetExec fails
+if [[ "$evaluation" == 1 || "$backup_exit_code" == 1 ]]; then
+    $ConditionHandler --task "release" --type "execution"
     exit 1
 fi
 
 ############################## Forget
 
+# Kombine keep rules
 keep_rules="--keep-within-hourly $hourly_for --keep-within-daily $daily_for"
 keep_rules+=" --keep-within-weekly $weekly_for --keep-within-monthly $monthly_for"
 keep_rules+=" --keep-within-yearly $yearly_for"
 
-"$HOME_PATH/Executor/ResticForgetExec" "$repo" \
-"$password_file" "$schedule_forget" "$keep_rules"
+# Evaluate schedule
+$ConditionHandler --task "evaluate" --type "lock" --process "Forget" --schedule "$schedule_forget"
+evaluation=$?
 
-forget_exit_code=$?
-# If Forget fails
-if [[ "$forget_exit_code" != 0 ]]; then
-    call_notifier "2" "warning" "Execution of 'Forget' failed"
-    release_lock
+if [[ "$evaluation" == 0 ]]; then
+    $ResticForgetExec "$repo" "$password_file" "$keep_rules"
+    forget_exit_code=$?
+fi
+
+# If evaluation or ResticForgetExec fails
+if [[ "$evaluation" == 1 || "$forget_exit_code" == 1 ]]; then
+    $ConditionHandler --task "release" --type "execution"
     exit 1
 fi
 
 ############################## Prune
 
-"$HOME_PATH/Executor/ResticPruneExec" "$repo" \
-"$password_file" "$schedule_prune"
+# Evaluate schedule
+$ConditionHandler --task "evaluate" --type "lock" --process "Prune" --schedule "$schedule_prune"
+evaluation=$?
 
-prune_exit_code=$?
-# If Prune fails
-if [[ "$prune_exit_code" != 0 ]]; then
-    call_notifier "2" "warning" "Execution of 'Prune' failed"
-    release_lock
+if [[ "$evaluation" == 0 ]]; then
+    $ResticPruneExec "$repo" "$password_file"
+    prune_exit_code=$?
+fi
+
+# If evaluation or ResticPruneExec fails
+if [[ "$evaluation" == 1 || "$prune_exit_code" == 1 ]]; then
+    $ConditionHandler --task "release" --type "execution"
     exit 1
 fi
 
-############################## Rclone 
+############################## Rclone
 
-"$HOME_PATH/Executor/RcloneExec" "$schedule_rclone" "$repo" "$dest_remote" \
-"" "--log-file /LogFiles/${JOB_NAME}_logging.log --log-level=$log_level" "$rclone_options"
+# Evaluate schedule
+$ConditionHandler --task "evaluate" --type "lock" --process "Rclone" --schedule "$schedule_rclone"
+evaluation=$?
 
-rclone_exit_code=$?
-# If Rclones fails
-if [[ "$rclone_exit_code" != 0 ]]; then
-    call_notifier "2" "warning" "Execution of 'Rclone' failed"
-    release_lock
+if [[ "$evaluation" == 0 ]]; then
+    $RcloneExec "$repo" "$dest_remote" "" \
+    "--log-file /LogFiles/${JOB_NAME}_$(date +'%Y-%m').log --log-level=$log_level" "$rclone_options"
+    rclone_exit_code=$?
+fi
+
+# If evaluation or ResticPruneExec fails
+if [[ "$evaluation" == 1 || "$rclone_exit_code" == 1 ]]; then
+    $ConditionHandler --task "release" --type "execution"
     exit 1
 fi
 
 ############################## Finished
 
+$ConditionHandler --task "release" --type "execution"
+
+completion_channel="file"
 if [[ "$notification_after_completion" = "true" ]]; then
-    call_notifier "2" "normal" "Execution successfully finished"
+    completion_channel="system"
 fi
-release_lock
-call_notifier "1" "" ""
-call_notifier "1" "" "Finished '$JOB_NAME'"
-call_notifier "-1" "" ""
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "$completion_channel" --args "normal" --message "Execution of '$JOB_NAME' successfully finished"
+$NOTIFIER --channel "file" --timestamps "false"
 
 #################################################################################
 #                                      End                                      #
