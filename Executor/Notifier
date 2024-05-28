@@ -7,15 +7,50 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-channel="$1"                                                                # Channel of the message output
-args="$2"                                                                   # Specific argument
-message="$3"                                                                # Message to send
-################################# Variables ################################
-timestamp="$(date +%F_%T)"                                                  # Log timestamp
-# Path to logfile
-log_file="$HOME_PATH/LogFiles/${JOB_NAME}_logging.log"                      # Path to log file
+timestamp="$(date +%F_%T) - "                                                  # Log timestamp
+log_file="$HOME_PATH/LogFiles/${JOB_NAME}_$(date +'%Y-%m').log"             # Path to log file
 mkdir -p "$(dirname "$log_file")"
-#############################################################################
+
+args=""                                                                     # Specific argument
+message=""                                                                  # Message to send
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --channel)
+            channel="$2"                               # evaluate or release
+            shift 2
+            ;;
+        --message)
+            message="${2}"                         # name of subprocess
+            shift 2
+            ;;
+        --args)
+            args="$2"                               # running, lock or pulldate
+            shift 2
+            ;;
+        --timestamps)
+            if [ "$2" == "false" ]; then             # Deactivate Timestamps
+                timestamp=""
+            fi
+            shift 2
+            ;;
+        *)
+            echo "ERROR: $JOB_NAME Notifier unknown option: $1"
+            echo "ERROR: $JOB_NAME Notifier unknown option: $1" >> "$log_file"
+            exit 1
+            ;;
+    esac
+done
+
+# Check for necessary arguments. 
+if [[ -z "$channel" ]]; then
+    echo "ERROR: $JOB_NAME Notifier --channel is required"
+    echo "ERROR: $JOB_NAME Notifier --channel is required" >> "$log_file"
+    exit 1
+fi
+
+
 
 
 #############################################################################
@@ -58,22 +93,20 @@ implement_your_nofification_system() {
 
 ################################# Send ######################################
 
-if [[ "$channel" == -1 ]]; then      # Log without timestamp
-    to_terminal "$message"
-    to_logfile "$message"
-    
-elif [[ "$channel" == 0 ]]; then
-    to_terminal "$timestamp - ERROR: No level set for Notification"
-    to_logfile "$timestamp - ERROR: No level set for Notification"
-    exit 1
+if [[ "$channel" == "terminal" ]]; then             # Message to logfile
+    to_terminal "${timestamp}${message}"
 
-elif [[ "$channel" == 1 ]]; then     # Message to logfile
-    to_terminal "$timestamp - $message"
-    to_logfile "$timestamp - $message"
+elif [[ "$channel" == "file" ]]; then               # Message to logfile
+    to_terminal "${timestamp}${message}"
+    to_logfile "${timestamp}${message}"
 
-elif [[ "$channel" == 2 ]]; then     # Message to notification system
-    # to_unraid_notification "$args" "$message"                             # Uncomment if you use Unraid as system
-    # to_mail                                                               # Implement your code to use
-    # implement_your_nofification_system                                    # Implement your code to use
+elif [[ "$channel" == "system" ]]; then             # Message to notification system
+    to_terminal "${timestamp}${message}"
+    to_logfile "${timestamp}${message}"
+    # to_unraid_notification "$args" "$message"     # Uncomment if you use Unraid as syste
+    # implement_your_nofification_system            # Implement your code to use
+    true
+elif [[ "$channel" == "mail" ]]; then               # Message to notification system
+    # to_mail                                       # Implement your code to use
     true
 fi                                                     
