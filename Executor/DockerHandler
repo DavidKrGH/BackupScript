@@ -1,0 +1,242 @@
+#!/bin/bash
+# BackupScripts version 1.0.3
+#################################### License ################################
+# MIT License Copyright (c) 2023 David Krumm                                #
+# All rights reserved.                                                      #
+#                                                                           #
+# This source code is licensed under the MIT license found in the           #
+# LICENSE file in the root directory of this source tree.                   #
+############################## Parse Arguments ##############################
+
+# Default values
+reverse="false" 
+stop_all="false"
+config=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --action)
+            action="$2"                                 # start, stop, update
+            shift 2
+            ;;
+        --reverse)
+            reverse="$2"                              # reverse order on start
+            shift 2
+            ;;
+        --config)
+            config="$2"                               # Name of config file
+            shift 2
+            ;;
+        --stop_all)
+            stop_all="$2"                               # Stop all running containerse wich are note excluded
+            shift 2
+            ;;
+        *)
+            $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# Check for necessary arguments. 
+if [[ -z "$action" ]]; then
+    $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler --action is required"
+    exit 1
+fi
+
+# Variablen definieren
+CONTAINER_LIST="$HOME_PATH/Config/DockerConfig/$config"
+TIMEOUT=60
+
+dir_path="$HOME_PATH/ConditionMarks"
+mkdir -p $dir_path
+TEMP_FILE="$dir_path/${JOB_NAME}_Container.temp"
+
+
+################################ Docker Handling ###########################
+
+pull_image() {
+    # Name des Docker-Images
+    local image_name=$1
+
+    # Pull the latest image from the Docker repository and save the output
+    pull_output=$(docker pull $image_name 2>&1)
+
+    # Check whether pumping was successful
+    if [ $? -ne 0 ]; then
+    echo "Fehler beim Pullen des Images: $pull_output"
+    exit 1
+    fi
+
+    # Check whether a new image has been downloaded
+    if echo "$pull_output" | grep -q 'Downloaded newer image'; then
+        $NOTIFIER --channel "file" --message "$JOB_NAME: The image has been successfully updated."
+
+    elif echo "$pull_output" | grep -q 'Image is up to date'; then
+        $NOTIFIER --channel "file" --message "$JOB_NAME: The local image is already the latest version."
+
+    else
+        $NOTIFIER --channel "file" --message "$JOB_NAME: Unknown status when the image is being pulled: $pull_output"
+    fi
+}
+
+# Checke, ob ein Container läuft
+is_container_running() {
+    docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null
+}
+
+# Container starten
+start_container() {
+    local id=$1
+    docker start "$id" > /dev/null 2>&1
+    local start_time=$(date +%s)
+    while [[ "$(is_container_running "$id")" != "true" ]]; do
+        sleep 1
+        if (( $(date +%s) - start_time >= TIMEOUT )); then
+            echo "Error: Timeout while starting container $id"
+            exit 1
+        fi
+    done
+    echo "Container $id started successfully."
+}
+
+# Container stoppen
+stop_container() {
+    local id=$1
+    docker stop "$id" > /dev/null 2>&1
+    local start_time=$(date +%s)
+    while [[ "$(is_container_running "$id")" == "true" ]]; do
+        sleep 1
+        if (( $(date +%s) - start_time >= TIMEOUT )); then
+            echo "Error: Timeout while stopping container $id"
+            exit 1
+        fi
+    done
+    echo "Container $id stopped successfully."
+}
+
+# Container nach der Liste starten oder stoppen
+process_containers() {
+    local action=$1
+    local reverse_order=$2
+
+    # Lese die Liste der Container
+    containers=()
+    while IFS= read -r line; do
+        [[ "$line" =~ ^[[:space:]]*$ ]] && continue  # Leere Zeilen überspringen
+        [[ "$line" =~ ^#.*$ ]] && continue           # Kommentarzeilen überspringen
+        [[ "$line" =~ ^[+-]\  ]] || continue         # Nur gültige Zeilen verarbeiten
+
+        flag=${line:0:1}
+        container=${line:2}
+
+        if [[ "$flag" == "+" ]]; then
+            containers+=("$container")
+        fi
+    done < "$CONTAINER_LIST"
+
+    # Reihenfolge umkehren, falls erforderlich
+    if $reverse_order; then
+        containers=($(echo "${containers[@]}" | tac -s ' '))
+    fi
+
+    # Container starten oder stoppen
+    for entry in "${containers[@]}"; do
+        if [[ "$action" == "start" ]]; then
+            #start_container "$entry"
+            echo "start $entry"
+        else
+            #stop_container "$entry"
+            echo "stop $entry"
+        fi
+    done
+}
+
+
+# Überprüfen und stoppen der restlichen Container
+stop_remaining_containers() {
+    # Erstelle eine Liste der Container, die gerade gestartet sind
+    started_containers=()
+    docker ps --format '{{.ID}} {{.Names}}' | while IFS= read -r id name; do
+        started_containers+=("$id" "$name")
+    done
+
+    # Erstelle eine Liste der Container, die nicht gestoppt werden sollen
+    excluded_containers=()
+    while IFS= read -r line; do
+        [[ "$line" =~ ^[[:space:]]*$ ]] && continue  # Leere Zeilen überspringen
+        [[ "$line" =~ ^#.*$ ]] && continue           # Kommentarzeilen überspringen
+        [[ "$line" =~ ^-\  ]] || continue            # Nur Ausschlusszeilen verarbeiten
+        excluded_containers+=("${line:2}")
+    done < "$CONTAINER_LIST"
+
+    # Stoppe nur die Container, die nicht in der Ausschlussliste sind
+    for ((i = 0; i < ${#started_containers[@]}; i+=2)); do
+        id=${started_containers[i]}
+        name=${started_containers[i+1]}
+
+        if [[ ! " ${excluded_containers[@]} " =~ " $id " && ! " ${excluded_containers[@]} " =~ " $name " ]]; then
+            echo "Stopping remaining container $name ($id)"
+            echo "$id $name" >> "$TEMP_FILE"
+            stop_container "$id"
+        fi
+    done
+}
+
+# Starten der vorher gestoppten Container
+start_previous_containers() {
+    if [[ -f "$TEMP_FILE" ]]; then
+        while IFS= read -r id name; do
+            echo "Starting previously stopped container $name ($id)"
+            start_container "$id"
+        done < "$TEMP_FILE"
+        #rm "$TEMP_FILE"
+    fi
+}
+
+
+################################## Jobs #####################################
+
+
+if [ "$action" == "update" ]; then
+
+    pull_image "restic/restic"
+    update_restic_result=$?
+    pull_image "rclone/rclone"
+    update_rclone_result=$?
+
+    if [[ "$update_restic_result" == 1 || "$update_rclone_result" == 1 ]]; then
+        $NOTIFIER --channel "file"
+        $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Pull or update of Restic or Rclone failed."
+        $NOTIFIER --channel "file" --message "Restic exit code: '$update_restic_result'"
+        $NOTIFIER --channel "file" --message "Rclone exit code: '$update_rclone_result'"
+        $NOTIFIER --channel "file" --message "An attempt is made to continue."
+        exit 0
+    fi
+elif [[ "$action" == "stop" ]]; then
+
+    process_containers "stop" "false"
+    stop_container_result=$?
+
+    if [ "$stop_all" == "true" ]; then
+        stop_remaining_containers
+    fi
+
+    if [[ "$stop_container_result" == 1 ]]; then
+        $NOTIFIER --channel "file"
+        
+        exit 1
+    fi
+
+elif [[ "$action" == "start" ]]; then
+
+    process_containers "start" "$reverse"
+    start_container_result=$?
+
+    if [[ "$start_container_result" == 1 ]]; then
+        $NOTIFIER --channel "file"
+        
+        exit 1
+    fi
+fi
