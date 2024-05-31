@@ -126,7 +126,7 @@ process_stop() {
     list_started_containers
 
     # Read config for containers to stop
-    included_containers=()
+    local included_containers=()
     while IFS= read -r line; do
         local flag
         local name_inc
@@ -161,7 +161,7 @@ process_stop() {
         fi
     done < "$started_containers"
 
-    rm $started_containers
+    rm "$started_containers"
 
 }
 
@@ -208,7 +208,7 @@ stop_remaining_containers() {
         fi
     done < "$started_containers"
 
-    rm $started_containers
+    rm "$started_containers"
 
 }
 
@@ -220,14 +220,33 @@ reverse_containers() {
 
 }
 
-start_previous_containers() {
-    if [[ -f "$TEMP_FILE" ]]; then
-        while IFS= read -r id name; do
-            echo "Starting previously stopped container $name ($id)"
-            start_container "$id" || return 1
-        done < "$TEMP_FILE"
-        #rm "$TEMP_FILE"
+process_start() {
+
+    local start_ids=()
+    local start_names=()
+
+    while IFS= read -r line; do
+        local id
+        local name
+        id=$(trim "$(echo "$line" | awk '{print $1}')")
+        name=$(trim "$(echo "$line" | awk '{print $2}')")
+
+        start_ids+=("$id")
+        start_names+=("$name")
+
+    done < "$stoped_containers"
+
+    if [[ "$reverse_order" == "true" ]]; then
+        start_ids=($(echo "${start_ids[@]}" | tac -s ' '))
+        start_names=($(echo "${start_names[@]}" | tac -s ' '))
     fi
+
+    for i in "${!start_ids[@]}"; do
+        start_container "${start_ids[$i]}" "${start_names[$i]}"
+    done
+
+    rm "$stoped_containers"
+
 }
 
 ################################## Jobs #####################################
