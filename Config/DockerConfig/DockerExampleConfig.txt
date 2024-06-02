@@ -1,0 +1,37 @@
+# Configuration for Docker containers that are stopped during the backup and started again afterwards.
+#
+# Format:
+# + container_name_or_id -> container to start/stop
+# - container_name_or_id -> container to exclude from start/stop
+#
+# Behavior:
+# The list is processed from top to bottom.
+# The first entry in the list is stopped/started first.
+# When using the "reverse" function, the list is processed in reverse order for starting.
+# Comments and empty lines are ignored.
+
+
+# Example:
+
+# Add individual containers to proceed in a specific order
++ ContainerName
++ abcdefg12345
+
+# Use pattern:
+# Adds "Container" "Container-Server" "Container-Database"
++ Cont*
+
+# Adds "Container-Private" "Container-Server-Private"; Dose not add "Container-Database"
++ Cont*-Private
+
+
+# To stop all containers or all remaining ones.
++ *
+
+
+# Excluded explicitly from starting and stopping. 
+- ContainerName
+- abcdefg12345
+- Cont*
+- Cont*-Private
+
