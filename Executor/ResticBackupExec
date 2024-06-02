@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.3
+# BackupScripts version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -8,19 +8,12 @@
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
 hostname="$1"                                                               # Set host name for detection of snapshots in the repo
-source="$2"                                                                 # Directory to be backed up
-repo="$3"                                                                   # Destination directory of the data backup
-password_file="$4"                                                          # Password file of restic repo
-filter_file="$5"                                                            # Path to filter file
-tags="$6"                                                                   # Tags for marking snapshots
-options="$7"                                                                # Additional Restic options
-################################ Docker Handling ###########################
-handle_docker="$8"                                                          # "true" or "false" to activate or deactivate Docker handling
-stop_start_remaining_container="$9"                                         # "true" to stop and start all "running" containers before backup, "false" to skip
-reverse_on_start="${10}"                                                    # "true" to reverse the order of the container_list at start-up
-shift 10                                                                    #
-container_list=("$@")                                                       # List and sequence of containers to be stopped
+tags="$2"                                                                   # Tags for marking snapshots
+options="$3"                                                                # Additional Restic options
 ######################### Docker Volume Propagation #########################
+
+$source="$SOURCE"
+$repo="$REPOSITORY"
 
 if [[ $source == *":"* ]]; then
     source_prop=":$(echo "$source" | cut -d ":" -f 2)"
@@ -36,108 +29,27 @@ else
     repo_prop=""
 fi
 
-################################## Funktions ################################
-
-reverse_array() {
-    local original_array=("$@")
-    local reversed_array=()
-
-    for ((i=${#original_array[@]}-1; i>=0; i--)); do
-        reversed_array+=("${original_array[i]}")
-    done
-
-    echo "${reversed_array[@]}"
-}
-
-convert_array_to_print() {
-  local array=("$@")
-  local result=""
-  
-  for element in "${array[@]}"; do
-    result+=" $element"
-  done
-  result="${result# }"
-
-  echo "$result"
-}
-
-start_stop_containers() {
-
-    local command="$1"
-    shift
-    local containers=("$@")
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Execute '${command}' for docker containers: '$(convert_array_to_print "${containers[@]}")'"
-
-    for con in "${containers[@]}"; do
-        $NOTIFIER --channel "file" --message "Execute '$command' for '$con' ..."
-        docker "$command" "$con"
-
-        # Wait for container to stop/start within a timeout period
-        local timeout=30
-        local interval=5
-        local elapsed=0
-
-        while true; do
-            container_status=$(docker inspect -f '{{.State.Status}}' "$con")
-            if [[ "$command" == "start" ]]; then
-                status="running"
-            else
-                status="exited"
-            fi
-            if [[ "$container_status" == "$status" ]]; then
-                $NOTIFIER --channel "file" --message "$con has successfully changed its status"
-                break
-            fi
-            if (( elapsed >= timeout )); then
-                $NOTIFIER --channel "file" --timestamps "false"
-                $NOTIFIER --channel "file" --message "ERROR $JOB_NAME: Timeout container '$con' failed to '$command'"
-                $NOTIFIER --channel "file" --timestamps "false"
-                exit 1
-            fi
-            sleep "$interval"
-            elapsed=$((elapsed + interval))
-        done
-        sleep 5
-    done
-}
-
-################################### Backup ##################################
+################################### Restic ##################################
 
 $NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "Starting 'backup' job of '$source'"
+$NOTIFIER --channel "file" --message "Starting 'Backup' job"
+$NOTIFIER --channel "file" --message "Source '$source'"
+$NOTIFIER --channel "file" --message "Repository '$repo'"
+$NOTIFIER --channel "file" --message "Use filter '$(basename "$RESTIC_FILTER")'"
 
-################################### Stop Docker Container
-
-# Skip if handle_docker is set to false
-if [[ "$handle_docker" == "true" ]]; then
-
-    # Stop containers in the container_list
-    start_stop_containers "stop" "${container_list[@]}"
-    #generate list of remaining running container and stop them
-    if [ "$stop_start_remaining_container" = "true" ]; then
-        docker_result=$(docker container ls -q)									
-        IFS=$'\n' read -rd '' -a containers <<< "$docker_result"
-        start_stop_containers "stop" "${containers[@]}"
-    fi
-
-else
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Container handling deactivated"
-fi
-
-################################### Restic Backup
+################################### Backup
 
 cmd="docker run --rm --name $JOB_NAME-ResticBackup \
     --hostname $hostname \
-    --volume $HOME_PATH:/home \
+    --volume $(dirname "$RESTIC_PW"):/password \
+    --volume $(dirname "$RESTIC_FILTER"):/filterfile \
     --volume $source:/source$source_prop \
     --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \
     restic/restic \
-    --password-file=/home/Config/ResticConfig/$password_file \
+    --password-file=/password/$(basename "$RESTIC_PW") \
     -r /repo backup /source $tags \
-    --exclude-file=/home/Config/FilterConfig/ResticFilter/$filter_file \
+    --exclude-file=/filterfile/$(basename "$RESTIC_FILTER") \
      $options"
 
 # progress message
@@ -149,22 +61,6 @@ $NOTIFIER --channel "file" --message "$cmd"
 output=$(eval $cmd)
 $NOTIFIER --channel "file" --message "$output" --timestamps "false"
 exit_code=$?
-
-################################### Start Docker
-
-# Skip if handle_docker is set to false
-if [[ "$handle_docker" == "true" ]]; then
-
-    #start container of generated list
-    if [[ "$stop_start_remaining_container" == "true" ]]; then
-        start_stop_containers "start" "${containers[@]}"
-    fi
-    #start container of list "container_list"
-    if [[ "$reverse_on_start" == "true" ]]; then
-        container_list=($(reverse_array "${container_list[@]}"))
-    fi
-    start_stop_containers "start" "${container_list[@]}"
-fi
 
 ################################# Evaluation ################################
 

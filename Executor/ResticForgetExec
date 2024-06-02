@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.3
+# BackupScripts version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -7,10 +7,10 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-repo="$1"                                                                   # Destination directory of the data backup
-password_file="$2"                                                          # Password file of restic repo
-keep_rules="$3"                                                             # Rules for keeping snapshots
+keep_rules="$1"                                                             # Rules for keeping snapshots
 ######################### Docker Volume Propagation #########################
+
+$repo="$REPOSITORY"
 
 if [[ $repo == *":"* ]]; then
     repo_prop=":$(echo "$repo" | cut -d ":" -f 2)"
@@ -19,14 +19,20 @@ else
     repo_prop=""
 fi
 
-################################### Forget ##################################
+################################### Restic ##################################
+
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "Starting 'Forget' job"
+$NOTIFIER --channel "file" --message "Repository '$repo'"
+
+################################### Forget
 
 cmd="docker run --rm --name $JOB_NAME-ResticForget \
-    --volume $HOME_PATH:/home \
+    --volume $(dirname "$RESTIC_PW"):/password \
     --volume $repo:/repo$repo_prop \
     --user $(id -u):$(id -g) \
     restic/restic \
-    --password-file=/home/Config/ResticConfig/$password_file \
+    --password-file=/password/$(basename "$RESTIC_PW") \
     -r /repo forget $keep_rules"
 
 # progress message

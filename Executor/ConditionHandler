@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.3
+# BackupScripts version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --process)
-            process="${2}"     # name of subprocess
+            process="$2"        # name of subprocess
             shift 2
             ;;
         --type)
@@ -74,7 +74,6 @@ cleanup_locks() {
             fi
         fi
     done
-
 }
 
 decode_schedule() {
@@ -175,7 +174,7 @@ elif [ "$task" == "evaluate" ] && [ "$type" == "lock" ]; then
         exit 1
     fi
     
-else                                                        # Raise error. Wrong command
+else
     $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME ConditionHandler command unknown"
     exit 1
 fi

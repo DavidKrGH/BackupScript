@@ -1,5 +1,5 @@
-#!/bin/bash -xv
-# BackupScripts version 1.0.3
+#!/bin/bash
+# BackupScripts version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -10,26 +10,16 @@
 
 # Default values
 reverse="false"
-stop_all="false"
-config=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --action)
-            action="$2"  # start, stop, update
+            action="$2"         # start, stop, update
             shift 2
             ;;
         --reverse)
-            reverse="$2"  # reverse order on start
-            shift 2
-            ;;
-        --config)
-            config="$2"  # Name of config file
-            shift 2
-            ;;
-        --stop_all)
-            stop_all="$2"  # Stop all running containers which are not excluded
+            reverse="$2"        # reverse order on start
             shift 2
             ;;
         *)
@@ -46,13 +36,11 @@ if [[ -z "$action" ]]; then
 fi
 
 # Variablen definieren
-config_file="$HOME_PATH/Config/DockerConfig/$config"
 timeout=60
 dir_path="$HOME_PATH/ConditionMarks"
 mkdir -p "$dir_path"
 started_containers="$dir_path/${JOB_NAME}_Started_Container.temp"
 stoped_containers="$dir_path/${JOB_NAME}_Stoped_Container.temp"
-
 
 ################################ Docker Handling ###########################
 
@@ -61,8 +49,7 @@ pull_image() {
     pull_output=$(docker pull "$image_name" 2>&1)
 
     if [ $? -ne 0 ]; then
-        echo "Fehler beim Pullen des Images: $pull_output"
-        exit 1
+        return 1
     fi
 
     if echo "$pull_output" | grep -q 'Downloaded newer image'; then
@@ -79,7 +66,14 @@ is_container_running() {
 }
 
 list_started_containers() {
+    if [ -f "$started_containers" ]; then
+        rm $started_containers
+    fi
     docker ps --format '{{.ID}} {{.Names}}' > "$started_containers"
+    if [ $? -ne 0 ]; then
+        $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Failed to query started containers"
+        exit 1
+    fi
 }
 
 trim() {
@@ -121,128 +115,114 @@ stop_container() {
     return 0
 }
 
-process_stop() {
+process_remaining() {
 
     list_started_containers
 
-    # Read config for containers to stop
-    local included_containers=()
+    # Read config for containers to exclude from stop
+    local exclude_pattern=()
     while IFS= read -r line; do
-        local flag
-        local name_inc
-        flag=$(trim "$(echo "$line" | awk '{print $1}')")
-        name_inc=$(trim "$(echo "$line" | awk '{print $2}')")
-        
-        if [[ $flag == "+" ]]; then
-            included_containers+=("$name_inc")
-        fi
-    done < "$config_file"
-
-    while IFS= read -r line; do
-        local id
-        local name
-        id=$(trim "$(echo "$line" | awk '{print $1}')")
-        name=$(trim "$(echo "$line" | awk '{print $2}')")
-
-        local stop="false"
-        for co in "${included_containers[@]}"; do
-            
-            co=$(trim "$co")
-            
-            if [[ "$co" == "$id" || "$co" == "$name" ]]; then
-                stop="true"
-                break
-            fi
-        done
-
-        if [[ "$stop" == "true" ]]; then
-            stop_container "$id" "$name"
-            echo "$id $name" >> "$stoped_containers"
-        fi
-    done < "$started_containers"
-
-    rm "$started_containers"
-
-}
-
-stop_remaining_containers() {
-
-    list_started_containers
-
-    # Read config for excluded container
-    local excluded_containers=()
-    while IFS= read -r line; do
-        local flag
-        local name_ex
-        flag=$(trim "$(echo "$line" | awk '{print $1}')")
-        name_ex=$(trim "$(echo "$line" | awk '{print $2}')")
+        local flag=$(trim "$(echo "$line" | awk '{print $1}')")
+        local pattern=$(trim "$(echo "$line" | awk '{print $2}')")
         
         if [[ $flag == "-" ]]; then
-            excluded_containers+=("$name_ex")
+            exclude_pattern+=("$pattern")
         fi
-    done < "$config_file"
+    done < "$DOCKER_CONFIG"
 
-
-    # Datei Zeile für Zeile lesen
     while IFS= read -r line; do
-        local id
-        local name
-        id=$(trim "$(echo "$line" | awk '{print $1}')")
-        name=$(trim "$(echo "$line" | awk '{print $2}')")
+        local id=$(trim "$(echo "$line" | awk '{print $1}')")
+        local name=$(trim "$(echo "$line" | awk '{print $2}')")
 
-        local stop="true"
-        for co in "${excluded_containers[@]}"; do
+        for pattern in "${exclude_pattern[@]}"; do
             
-            co=$(trim "$co")
+            pattern=$(trim "$pattern")
             
-            if [[ "$co" == "$id" || "$co" == "$name" ]]; then
-                stop="false"
-                $NOTIFIER --channel "file" --message "Do not stop Container $name ($id)"
+            if [[ "$id" != $pattern || "$name" != $pattern ]]; then
+                stop_container "$id" "$name"
+                echo "$id $name" >> "$stoped_containers"
                 break
             fi
         done
+    done < "$started_containers"
+    
+    rm "$started_containers"
+}
 
-        if [[ "$stop" == "true" ]]; then
-            stop_container "$id" "$name"
-            echo "$id $name" >> "$stoped_containers"
+process_stop() {
+
+    if [ -f "$stoped_containers" ]; then
+        rm "$stoped_containers"
+    fi
+
+    list_started_containers
+    stop_remaining="false"
+
+    # Read config for containers to stop
+    local included_pattern=()
+    while IFS= read -r line; do
+        local flag=$(trim "$(echo "$line" | awk '{print $1}')")
+        local pattern=$(trim "$(echo "$line" | awk '{print $2}')")
+        
+        if [[ $flag != "+" ]]; then
+            continue
+        elif [[ "$pattern" == "*" ]]; then
+            stop_remaining="true"
+        else
+            included_pattern+=("$pattern")
         fi
+    done < "$DOCKER_CONFIG"
+
+    while IFS= read -r line; do
+        local id=$(trim "$(echo "$line" | awk '{print $1}')")
+        local name=$(trim "$(echo "$line" | awk '{print $2}')")
+
+        for pattern in "${included_pattern[@]}"; do
+            
+            pattern=$(trim "$pattern")
+            
+            if [[ "$id" == $pattern || "$name" == $pattern ]]; then
+                stop_container "$id" "$name"
+                echo "$id $name" >> "$stoped_containers"
+                break
+            fi
+        done
     done < "$started_containers"
 
     rm "$started_containers"
 
-}
-
-reverse_containers() {
-
-    if [[ "$reverse_order" == "true" ]]; then
-        containers=($(echo "${containers[@]}" | tac -s ' '))
+    if [[ $stop_remaining == "true" ]]; then
+        process_remaining
     fi
-
 }
 
 process_start() {
 
-    local start_ids=()
-    local start_names=()
+    if [ ! -f "$stoped_containers" ]; then
+        $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Start containers faild"
+        $NOTIFIER --channel "file" --message "Temporary file of the stopped container was lost"
+        exit 1
+    fi
+
+    local ids_to_start=()
+    local names_to_start=()
 
     while IFS= read -r line; do
-        local id
-        local name
-        id=$(trim "$(echo "$line" | awk '{print $1}')")
-        name=$(trim "$(echo "$line" | awk '{print $2}')")
+        local id=$(trim "$(echo "$line" | awk '{print $1}')")
+        local name=$(trim "$(echo "$line" | awk '{print $2}')")
 
-        start_ids+=("$id")
-        start_names+=("$name")
+        ids_to_start+=("$id")
+        names_to_start+=("$name")
 
     done < "$stoped_containers"
 
     if [[ "$reverse_order" == "true" ]]; then
-        start_ids=($(echo "${start_ids[@]}" | tac -s ' '))
-        start_names=($(echo "${start_names[@]}" | tac -s ' '))
+        ids_to_start=($(echo "${ids_to_start[@]}" | tac -s ' '))
+        names_to_start=($(echo "${names_to_start[@]}" | tac -s ' '))
     fi
 
-    for i in "${!start_ids[@]}"; do
-        start_container "${start_ids[$i]}" "${start_names[$i]}"
+    for i in "${!ids_to_start[@]}"; do
+        start_container "${ids_to_start[$i]}" "${names_to_start[$i]}"
     done
 
     rm "$stoped_containers"
@@ -252,6 +232,7 @@ process_start() {
 ################################## Jobs #####################################
 
 if [[ "$action" == "update" ]]; then
+
     pull_image "restic/restic"
     update_restic_result=$?
     pull_image "rclone/rclone"
@@ -265,25 +246,15 @@ if [[ "$action" == "update" ]]; then
         exit 0
     fi
 elif [[ "$action" == "stop" ]]; then
-    process_containers "stop" "false"
-    stop_container_result=$?
 
-    if [[ "$stop_all" == "true" ]]; then
-        stop_remaining_containers
-    fi
+    process_stop
+    exit 0
 
-    if [[ "$stop_container_result" == 1 ]]; then
-        $NOTIFIER --channel "file"
-        exit 1
-    fi
 elif [[ "$action" == "start" ]]; then
-    process_containers "start" "$reverse"
-    start_container_result=$?
 
-    if [[ "$start_container_result" == 1 ]]; then
-        $NOTIFIER --channel "file"
-        exit 1
-    fi
+    process_start
+    exit 0
+    
 else
     $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler unknown action: $action"
     exit 1

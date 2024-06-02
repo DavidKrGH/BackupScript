@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.3
+# BackupScripts version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -18,19 +18,19 @@ message=""                                                                  # Me
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --channel)
-            channel="$2"                               # evaluate or release
+            channel="$2"                        # evaluate or release
             shift 2
             ;;
         --message)
-            message="${2}"                         # name of subprocess
+            message="$2"                        # name of subprocess
             shift 2
             ;;
         --args)
-            args="$2"                               # running, lock or pulldate
+            args="$2"                           # running, lock or pulldate
             shift 2
             ;;
         --timestamps)
-            if [ "$2" == "false" ]; then             # Deactivate Timestamps
+            if [ "$2" == "false" ]; then        # Deactivate Timestamps
                 timestamp=""
             fi
             shift 2

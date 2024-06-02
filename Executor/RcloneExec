@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 1.0.3
+# BackupScripts version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -7,12 +7,11 @@
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
 ################################# Parameters ################################
-source="$1"                                                                 # Directory to be backed up
-destination="$2"                                                            # Destination directory of the data backup
-filter_options="$3"                                                         # Settings for filtering files
-logging_options="$4"                                                        # Settings for the logging of rclone
-options="$5"                                                                # Additional rclone options
+logging_options="$1"                                                        # Settings for the logging of rclone
+options="$2"                                                                # Additional rclone options
 ######################### Docker Volume Propagation #########################
+
+$source="$SOURCE"
 
 if [[ $source == *":"* ]]; then
     source_prop=":$(echo "$source" | cut -d ":" -f 2)"
@@ -21,20 +20,27 @@ else
     source_prop=""
 fi
 
-################################# Backup ####################################
+################################# Rclone ####################################
+
+$NOTIFIER --channel "file"
+$NOTIFIER --channel "file" --message "Starting 'Rclone' job"
+$NOTIFIER --channel "file" --message "Source '$source'"
+$NOTIFIER --channel "file" --message "Remote '$REMOTE'"
+
+
+################################### Backup
 
 cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
     --volume $HOME_PATH/Config/RcloneConfig:/config/rclone \
     --volume $HOME_PATH/LogFiles:/LogFiles \
-    --volume $HOME_PATH/Config/FilterConfig/RcloneFilter:/FilterFiles \
     --volume $source:/source$source_prop \
     --user $(id -u):$(id -g) \
-    rclone/rclone sync /source $destination \
+    rclone/rclone sync /source $REMOTE \
     $filter_options $logging_options $options"
 
 # progress message
 $NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "Backup in progress ... "
+$NOTIFIER --channel "file" --message "Rclone in progress ... "
 $NOTIFIER --channel "file"
 $NOTIFIER --channel "file" --message "$cmd"
 
