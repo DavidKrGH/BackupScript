@@ -1,4 +1,3 @@
-
 # Docs: "https://restic.readthedocs.io/en/latest/040_backup.html#excluding-files"
 ##########################   Excludes   ##########################
 

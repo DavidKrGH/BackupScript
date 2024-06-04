@@ -6,9 +6,11 @@
 #                                                                           #
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
+#############################################################################
+
 ######################### Docker Volume Propagation #########################
 
-$repo="$REPOSITORY"
+repo="$REPOSITORY"
 
 if [[ $repo == *":"* ]]; then
     repo_prop=":$(echo "$repo" | cut -d ":" -f 2)"
@@ -37,7 +39,7 @@ cmd="docker run --rm --name $JOB_NAME-ResticPrune \
 $NOTIFIER --channel "file"
 $NOTIFIER --channel "file" --message "Prune in progress ... "
 $NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "$cmd"
+$NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
 
 output=$(eval $cmd)
 $NOTIFIER --channel "file" --message "$output" --timestamps "false"

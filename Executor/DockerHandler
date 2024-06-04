@@ -6,6 +6,8 @@
 #                                                                           #
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
+#############################################################################
+
 ############################## Parse Arguments ##############################
 
 # Default values
@@ -42,7 +44,7 @@ mkdir -p "$dir_path"
 started_containers="$dir_path/${JOB_NAME}_Started_Container.temp"
 stoped_containers="$dir_path/${JOB_NAME}_Stoped_Container.temp"
 
-################################ Docker Handling ###########################
+################################# Funktions #################################
 
 pull_image() {
     local image_name=$1
@@ -61,15 +63,17 @@ pull_image() {
     fi
 }
 
-is_container_running() {
-    docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null
+container_status() {
+    docker inspect -f '{{.State.Status}}' "$1" 2>/dev/null
 }
 
 list_started_containers() {
     if [ -f "$started_containers" ]; then
-        rm $started_containers
+        rm "$started_containers"
     fi
-    docker ps --format '{{.ID}} {{.Names}}' > "$started_containers"
+
+    docker ps --format "{{.ID}} {{.Names}}" > "$started_containers"
+
     if [ $? -ne 0 ]; then
         $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Failed to query started containers"
         exit 1
@@ -88,8 +92,9 @@ start_container() {
     local name=$2
     docker start "$id" > /dev/null 2>&1
     local start_time=$(date +%s)
-    while [[ "$(is_container_running "$id")" != "true" ]]; do
-        sleep 5
+    sleep 2
+    while [[ "$(container_status "$id")" != "running" ]]; do
+        sleep 1
         if (( $(date +%s) - start_time >= timeout )); then
             $NOTIFIER --channel "system" --message "Error: $JOB_NAME timeout while starting container $name ($id)"
             exit 1
@@ -104,8 +109,9 @@ stop_container() {
     local name=$2
     docker stop "$id" > /dev/null 2>&1
     local start_time=$(date +%s)
-    while [[ "$(is_container_running "$id")" == "true" ]]; do
-        sleep 5
+    sleep 2
+    while [[ "$(container_status "$id")" != "exited" ]]; do
+        sleep 1
         if (( $(date +%s) - start_time >= timeout )); then
             $NOTIFIER --channel "system" --message "Error: $JOB_NAME timeout while stoping container $name ($id)"
             exit 1
@@ -119,7 +125,6 @@ process_remaining() {
 
     list_started_containers
 
-    # Read config for containers to exclude from stop
     local exclude_pattern=()
     while IFS= read -r line; do
         local flag=$(trim "$(echo "$line" | awk '{print $1}')")
@@ -128,22 +133,27 @@ process_remaining() {
         if [[ $flag == "-" ]]; then
             exclude_pattern+=("$pattern")
         fi
-    done < "$DOCKER_CONFIG"
+    done < "$DOCKER_SHUTDOWN_CONFIG"
 
     while IFS= read -r line; do
         local id=$(trim "$(echo "$line" | awk '{print $1}')")
         local name=$(trim "$(echo "$line" | awk '{print $2}')")
+        local execute_stop="true"
 
         for pattern in "${exclude_pattern[@]}"; do
             
             pattern=$(trim "$pattern")
             
-            if [[ "$id" != $pattern || "$name" != $pattern ]]; then
-                stop_container "$id" "$name"
-                echo "$id $name" >> "$stoped_containers"
+            if [[ "$id" == $pattern || "$name" == $pattern ]]; then
+                execute_stop="false"
                 break
             fi
         done
+
+        if [[ "$execute_stop" == "true" ]]; then
+            stop_container "$id" "$name"
+            echo "$id $name" >> "$stoped_containers"
+        fi
     done < "$started_containers"
     
     rm "$started_containers"
@@ -154,11 +164,10 @@ process_stop() {
     if [ -f "$stoped_containers" ]; then
         rm "$stoped_containers"
     fi
-
+    
     list_started_containers
     stop_remaining="false"
-
-    # Read config for containers to stop
+    
     local included_pattern=()
     while IFS= read -r line; do
         local flag=$(trim "$(echo "$line" | awk '{print $1}')")
@@ -171,7 +180,7 @@ process_stop() {
         else
             included_pattern+=("$pattern")
         fi
-    done < "$DOCKER_CONFIG"
+    done < "$DOCKER_SHUTDOWN_CONFIG"
 
     while IFS= read -r line; do
         local id=$(trim "$(echo "$line" | awk '{print $1}')")
@@ -190,7 +199,7 @@ process_stop() {
     done < "$started_containers"
 
     rm "$started_containers"
-
+    
     if [[ $stop_remaining == "true" ]]; then
         process_remaining
     fi
@@ -233,6 +242,10 @@ process_start() {
 
 if [[ "$action" == "update" ]]; then
 
+    $NOTIFIER --channel "file"
+    $NOTIFIER --channel "file" --message "Starting 'Update' job"
+    $NOTIFIER --channel "file"
+
     pull_image "restic/restic"
     update_restic_result=$?
     pull_image "rclone/rclone"
@@ -245,15 +258,24 @@ if [[ "$action" == "update" ]]; then
         $NOTIFIER --channel "file" --message "An attempt is made to continue."
         exit 0
     fi
+
+
 elif [[ "$action" == "stop" ]]; then
 
+    $NOTIFIER --channel "file"
+    $NOTIFIER --channel "file" --message "Stopping the Docker containers"
+    $NOTIFIER --channel "file" --message "Config '$(basename "$DOCKER_SHUTDOWN_CONFIG")'"
+    $NOTIFIER --channel "file"
+    
     process_stop
     exit 0
+
 
 elif [[ "$action" == "start" ]]; then
 
     process_start
     exit 0
+    
     
 else
     $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler unknown action: $action"

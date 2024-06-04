@@ -6,12 +6,16 @@
 #                                                                           #
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
+#############################################################################
+
 ################################# Parameters ################################
+
 logging_options="$1"                                                        # Settings for the logging of rclone
 options="$2"                                                                # Additional rclone options
+
 ######################### Docker Volume Propagation #########################
 
-$source="$SOURCE"
+source="$REPOSITORY"
 
 if [[ $source == *":"* ]]; then
     source_prop=":$(echo "$source" | cut -d ":" -f 2)"
@@ -32,17 +36,20 @@ $NOTIFIER --channel "file" --message "Remote '$REMOTE'"
 
 cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
     --volume $HOME_PATH/Config/RcloneConfig:/config/rclone \
-    --volume $HOME_PATH/LogFiles:/LogFiles \
+    --volume $(dirname "$RCLONE_FILTER"):/filterfile \
+    --volume $HOME_PATH/LogFiles:/logfiles \
     --volume $source:/source$source_prop \
     --user $(id -u):$(id -g) \
     rclone/rclone sync /source $REMOTE \
-    $filter_options $logging_options $options"
+    --log-file /logfiles/${JOB_NAME}_$(date +'%Y-%m').log \
+    --filter-from /filterfile/$(basename "$RCLONE_FILTER") \
+    $options"
 
 # progress message
 $NOTIFIER --channel "file"
 $NOTIFIER --channel "file" --message "Rclone in progress ... "
 $NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "$cmd"
+$NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
 
 eval $cmd
 exit_code=$?

@@ -6,10 +6,15 @@
 #                                                                           #
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
-################################# Parameters ################################
-timestamp="$(date +%F_%T) - "                                               # Log timestamp
+#############################################################################
+
+################################# Variables #################################
+
+timestamp="$(date +"%Y-%m-%d %H:%M:%S") - "                                 # Log timestamp
 log_file="$HOME_PATH/LogFiles/${JOB_NAME}_$(date +'%Y-%m').log"             # Path to log file
 mkdir -p "$(dirname "$log_file")"
+
+############################## Parse Arguments ##############################
 
 args=""                                                                     # Specific argument
 message=""                                                                  # Message to send
@@ -49,9 +54,6 @@ if [[ -z "$channel" ]]; then
     echo "ERROR: $JOB_NAME Notifier --channel is required" >> "$log_file"
     exit 1
 fi
-
-
-
 
 #############################################################################
 #                  Adjust the code below to suit your needs                 # 

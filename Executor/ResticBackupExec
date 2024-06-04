@@ -6,14 +6,18 @@
 #                                                                           #
 # This source code is licensed under the MIT license found in the           #
 # LICENSE file in the root directory of this source tree.                   #
+#############################################################################
+
 ################################# Parameters ################################
+
 hostname="$1"                                                               # Set host name for detection of snapshots in the repo
 tags="$2"                                                                   # Tags for marking snapshots
 options="$3"                                                                # Additional Restic options
+
 ######################### Docker Volume Propagation #########################
 
-$source="$SOURCE"
-$repo="$REPOSITORY"
+source="$SOURCE"
+repo="$REPOSITORY"
 
 if [[ $source == *":"* ]]; then
     source_prop=":$(echo "$source" | cut -d ":" -f 2)"
@@ -35,7 +39,7 @@ $NOTIFIER --channel "file"
 $NOTIFIER --channel "file" --message "Starting 'Backup' job"
 $NOTIFIER --channel "file" --message "Source '$source'"
 $NOTIFIER --channel "file" --message "Repository '$repo'"
-$NOTIFIER --channel "file" --message "Use filter '$(basename "$RESTIC_FILTER")'"
+$NOTIFIER --channel "file" --message "Filter '$(basename "$RESTIC_FILTER")'"
 
 ################################### Backup
 
@@ -56,7 +60,7 @@ cmd="docker run --rm --name $JOB_NAME-ResticBackup \
 $NOTIFIER --channel "file"
 $NOTIFIER --channel "file" --message "Backup in progress ... "
 $NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "$cmd"
+$NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
 
 output=$(eval $cmd)
 $NOTIFIER --channel "file" --message "$output" --timestamps "false"
