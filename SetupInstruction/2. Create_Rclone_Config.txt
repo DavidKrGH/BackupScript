@@ -1,7 +1,3 @@
-
-
-
-
 ###################### Create Rclone Config #####################
 
 # Run this docker command to create or change your rclone configurations.
@@ -11,6 +7,7 @@
 # Visit the rclone documentations to setup your config.
 
 # https://rclone.org/docs/
+
 
 
 docker run -i --rm \

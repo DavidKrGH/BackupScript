@@ -1,7 +1,3 @@
-
-
-
-
 ###################### Mount Repo for Data Restore #########
 
 ###################### Mounting
@@ -13,13 +9,15 @@
 # Replace /PATH/TO/EMPTY/DIR to a empty directory
 # Run the command and keep the terminal window open
 
+# https://restic.readthedocs.io/en/latest/
+
 
 
 docker run --rm \
 --name ResticMounted \
 --device /dev/fuse --cap-add SYS_ADMIN \
 --volume /PATH/TO/BackupScripts:/home \
---volume /PATH/TO/YOUR/DATA:/data \
+--volume /PATH/TO/YOUR/DATA:/restore \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --volume /PATH/TO/EMPTY/DIR:/mountdir \
 --user $(id -u):$(id -g) \
@@ -31,16 +29,18 @@ restic/restic \
 
 
 ###################### Enter Mount
-
 # Run this command in a second terminal window to enter the mounted restic instance
 
 docker exec -it ResticMounted sh
 
 
-
-
 ###################### Enter Filesystem
-
 # Run this command after you entered the restic instance to enter your repository
 
 cd mountdir
+
+
+###################### Copy Files
+# Copy file or directories from source path to destination paht including all metadata like rights and ownership
+
+cp -a /source-pah/in/repository /restore/PATH/TO/DIR

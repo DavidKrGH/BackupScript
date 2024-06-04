@@ -1,0 +1,19 @@
+###################### Create New Repository ################
+
+# Use this Docker command to interact with the repository.
+# Replace /PATH/TO/ to the location of your BackupScripts directory.
+# Replace /PATH/TO/YOUR/REPOSITORIE to the location of your Repository directory.
+# Replace YourResticCommands with the commands you want to use.
+
+# https://restic.readthedocs.io/en/latest/
+
+
+
+docker run -i --rm \
+--volume /PATH/TO/BackupScripts:/home \
+--volume /PATH/TO/YOUR/REPOSITORIE:/repo \
+--user $(id -u):$(id -g) \
+restic/restic \
+--password-file=/home/Config/ResticConfig/restic-repo.password \
+-r repo \
+YourResticCommands

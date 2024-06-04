@@ -1,9 +1,4 @@
-
-
-
-
 ###################### Create New Repository ################
-
 
 # Run this command to create a new restic repository
 # Replace /PATH/TO/ with the location of your BackupScripts directory
@@ -14,6 +9,8 @@
 # Do not change the location of the password files
 # Please make sure to change the name in below docker command and also your backup job
 # Run the command
+
+# https://restic.readthedocs.io/en/latest/
 
 
 
