@@ -48,6 +48,7 @@ $NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
 
 output=$(eval "$cmd" 2>&1)
 exit_code=$?
+output=${output//%/%%}
 $NOTIFIER --channel "file" --message "$output" --timestamps "false"
 
 ################################# Evaluation ################################

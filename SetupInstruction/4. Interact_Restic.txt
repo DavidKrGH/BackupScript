@@ -3,6 +3,7 @@
 # Use this Docker command to interact with the repository.
 # Replace /PATH/TO/ to the location of your BackupScripts directory.
 # Replace /PATH/TO/YOUR/REPOSITORIE to the location of your Repository directory.
+# Replace PASSWORD.FILE with the correct file name
 # Replace YourResticCommands with the commands you want to use.
 
 # https://restic.readthedocs.io/en/latest/
@@ -14,7 +15,7 @@ docker run -i --rm \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \
---password-file=/home/Config/RepositoryPassword/restic-repo.password \
+--password-file=/home/Config/RepositoryPassword/PASSWORD.FILE \
 -r repo \
 YourResticCommands
 
@@ -35,5 +36,5 @@ docker run -i --rm \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \
---password-file=/home/Config/RepositoryPassword/restic-repo.password \
+--password-file=/home/Config/RepositoryPassword/PASSWORD.FILE \
 -r repo unlock

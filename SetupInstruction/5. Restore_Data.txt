@@ -6,6 +6,7 @@
 # Replace /PATH/TO/ to the location of your BackupScripts directory
 # Replace /PATH/TO/YOUR/DATA to your data directory
 # Replace /PATH/TO/YOUR/REPOSITORIE to your repository
+# Replace PASSWORD.FILE with the correct file name
 # Replace /PATH/TO/EMPTY/DIR to a empty directory
 # Run the command and keep the terminal window open
 
@@ -22,7 +23,7 @@ docker run --rm \
 --volume /PATH/TO/EMPTY/DIR:/mountdir \
 --user $(id -u):$(id -g) \
 restic/restic \
---password-file=/home/Config/RepositoryPassword/restic-repo.password \
+--password-file=/home/Config/RepositoryPassword/PASSWORD.FILE \
 -r repo mount /mountdir
 
 
@@ -43,4 +44,4 @@ cd mountdir
 ###################### Copy Files
 # Copy file or directories from source path to destination paht including all metadata like rights and ownership
 
-cp -a /source-pah/in/repository /restore/PATH/TO/DIR
+cp -a /SOURCE-PATH/IN/REPOSITORY /restore/PATH/TO/DESTINATION

@@ -4,7 +4,8 @@
 # Replace /PATH/TO/ with the location of your BackupScripts directory
 # Create a new empty directory for your repository in the desired location
 # Replace /PATH/TO/YOUR/REPOSITORIE with the path to your repository
-# Edit or create a new restic-repo.password file under "BackupScripts > Config > ResitcConfig"
+# Edit or create a new restic-repo.password file under "BackupScripts > Config > RepositoryPassword"
+# Replace PASSWORD.FILE with the correct file name
 # If you want to have different passwords you can change the name of the file.
 # Do not change the location of the password files
 # Please make sure to change the name in below docker command and also your backup job
@@ -19,5 +20,5 @@ docker run -i --rm \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \
---password-file=/home/Config/RepositoryPassword/restic-repo.password \
+--password-file=/home/Config/RepositoryPassword/PASSWORD.FILE \
 init -r repo

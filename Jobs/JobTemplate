@@ -30,7 +30,7 @@ path_to_the_directory_to_be_backed_up="/PATH/TO/DATA:ro"                        
                                                                                 #
 path_to_restic_repository="/PATH/TO/REPO:rw,slave"                              # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave" ro=read-only, rw=read-write 
                                                                                 #
-name_restic_password_file="restic-repo.password"                                # File in Config/ResticConfig. Insert yor repository password first.
+name_restic_password_file="restic-repo.password"                                # File in Config/RepositoryPassword. Insert yor repository password first.
                                                                                 #
 restig_backup_tags="--tag FirstTag --tag SecondTag"                             # Tags to be applied to the backup snapshots
                                                                                 #
