@@ -55,11 +55,11 @@ pull_image() {
     fi
 
     if echo "$pull_output" | grep -q 'Downloaded newer image'; then
-        $NOTIFIER --channel "file" --message "$JOB_NAME: The image has been successfully updated."
+        $NOTIFIER --channel "file" --message "$JOB_NAME: The image '$image_name' has been successfully updated."
     elif echo "$pull_output" | grep -q 'Image is up to date'; then
-        $NOTIFIER --channel "file" --message "$JOB_NAME: The local image is already the latest version."
+        $NOTIFIER --channel "file" --message "$JOB_NAME: The local image '$image_name' is already the latest version."
     else
-        $NOTIFIER --channel "file" --message "$JOB_NAME: Unknown status when the image is being pulled: $pull_output"
+        $NOTIFIER --channel "file" --message "$JOB_NAME: Unknown status when the image '$image_name' is being pulled: $pull_output"
     fi
 }
 
@@ -121,19 +121,36 @@ stop_container() {
     return 0
 }
 
-process_remaining() {
+decode_config() {
 
-    list_started_containers
+    included_pattern=()
+    exclude_pattern=()
+    stop_remaining="false"
 
-    local exclude_pattern=()
+
     while IFS= read -r line; do
         local flag=$(trim "$(echo "$line" | awk '{print $1}')")
         local pattern=$(trim "$(echo "$line" | awk '{print $2}')")
-        
-        if [[ $flag == "-" ]]; then
+
+        if [[ $flag == "+" ]]; then
+
+            if [[ "$pattern" == "*" ]]; then
+                stop_remaining="true"
+            else
+                included_pattern+=("$pattern")
+            fi
+
+        elif [[ $flag == "-" ]]; then
             exclude_pattern+=("$pattern")
         fi
+
     done < "$DOCKER_SHUTDOWN_CONFIG"
+    
+}
+
+process_remaining() {
+
+    list_started_containers
 
     while IFS= read -r line; do
         local id=$(trim "$(echo "$line" | awk '{print $1}')")
@@ -165,38 +182,45 @@ process_stop() {
         rm "$stoped_containers"
     fi
     
+    touch $stoped_containers
     list_started_containers
-    stop_remaining="false"
     
-    local included_pattern=()
-    while IFS= read -r line; do
-        local flag=$(trim "$(echo "$line" | awk '{print $1}')")
-        local pattern=$(trim "$(echo "$line" | awk '{print $2}')")
-        
-        if [[ $flag != "+" ]]; then
-            continue
-        elif [[ "$pattern" == "*" ]]; then
-            stop_remaining="true"
-        else
-            included_pattern+=("$pattern")
-        fi
-    done < "$DOCKER_SHUTDOWN_CONFIG"
+    local started_containers_id=()
+    local started_containers_name=()
+    local stopped_flags=()
 
     while IFS= read -r line; do
         local id=$(trim "$(echo "$line" | awk '{print $1}')")
         local name=$(trim "$(echo "$line" | awk '{print $2}')")
 
-        for pattern in "${included_pattern[@]}"; do
-            
-            pattern=$(trim "$pattern")
-            
+        started_containers_id+=("$id")
+        started_containers_name+=("$name")
+        stopped_flags+=("false")
+        
+    done < "$started_containers"
+
+    for pattern in "${included_pattern[@]}"; do
+        
+        pattern=$(trim "$pattern")
+
+        for i in "${!started_containers_id[@]}"; do
+
+            if [[ ${stopped_flags[$i]} == "true" ]]; then
+                continue
+            fi
+
+            local id="${started_containers_id[$i]}"
+            local name="${started_containers_name[$i]}"
+
             if [[ "$id" == $pattern || "$name" == $pattern ]]; then
                 stop_container "$id" "$name"
                 echo "$id $name" >> "$stoped_containers"
+                stopped_flags[$i]="true"
                 break
             fi
+
         done
-    done < "$started_containers"
+    done
 
     rm "$started_containers"
     
@@ -225,7 +249,7 @@ process_start() {
 
     done < "$stoped_containers"
 
-    if [[ "$reverse_order" == "true" ]]; then
+    if [[ "$reverse" == "true" ]]; then
         ids_to_start=($(echo "${ids_to_start[@]}" | tac -s ' '))
         names_to_start=($(echo "${names_to_start[@]}" | tac -s ' '))
     fi
@@ -267,6 +291,7 @@ elif [[ "$action" == "stop" ]]; then
     $NOTIFIER --channel "file" --message "Config '$(basename "$DOCKER_SHUTDOWN_CONFIG")'"
     $NOTIFIER --channel "file"
     
+    decode_config
     process_stop
     exit 0
 

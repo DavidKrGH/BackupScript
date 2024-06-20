@@ -58,7 +58,7 @@ exit_code=$?
 
 if [[ "$exit_code" == 0 ]]; then
     $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Completed 'backup' job to '$destination' successfully"
+    $NOTIFIER --channel "file" --message "Completed 'Rclone' job to '$destination' successfully"
     exit 0
 else
     $NOTIFIER --channel "file" --timestamps "false"

@@ -22,7 +22,7 @@ docker run --rm \
 --volume /PATH/TO/EMPTY/DIR:/mountdir \
 --user $(id -u):$(id -g) \
 restic/restic \
---password-file=/home/Config/ResticConfig/restic-repo.password \
+--password-file=/home/Config/RepositoryPassword/restic-repo.password \
 -r repo mount /mountdir
 
 

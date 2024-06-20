@@ -19,5 +19,5 @@ docker run -i --rm \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \
---password-file=/home/Config/ResticConfig/restic-repo.password \
+--password-file=/home/Config/RepositoryPassword/restic-repo.password \
 init -r repo

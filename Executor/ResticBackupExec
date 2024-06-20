@@ -62,15 +62,15 @@ $NOTIFIER --channel "file" --message "Backup in progress ... "
 $NOTIFIER --channel "file"
 $NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
 
-output=$(eval $cmd)
-$NOTIFIER --channel "file" --message "$output" --timestamps "false"
+output=$(eval "$cmd" 2>&1)
 exit_code=$?
+$NOTIFIER --channel "file" --message "$output" --timestamps "false"
 
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
     $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Completed 'backup' job of '$source' successfully"
+    $NOTIFIER --channel "file" --message "Completed 'Backup' job of '$source' successfully"
     exit 0
 else
     $NOTIFIER --channel "file" --timestamps "false"
