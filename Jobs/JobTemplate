@@ -7,7 +7,7 @@
 # This source code is licensed under the MIT license found in the               #
 # LICENSE file in the root directory of this source tree.                       #
 #################################################################################
-#================================ BackupScripts ================================#
+#                                 BackupScripts                                 #
 #################################################################################
                                                                                 #
 unique_job_name="ChangeMeToUniqueName"                                          # Unique job name. Do not use space or underscore!!!
@@ -20,10 +20,9 @@ schedule_update_Restic_and_Rclone="monthly: 1"                                  
                                                                                 # "never", "always", "weekly: Mon Tue Wed Thu Fri Sat Sun", "monthly: 1 7 14 21 28"
                                                                                 # Executed only once per day if the weekly or monthly pattern is used.
                                                                                 #
-notify_after_completion="True"                                                  # (true/false) The notification system must be set up. See documentation.
+notify_after_completion="true"                                                  # (true/false) The notification system must be set up. See documentation.
                                                                                 #
 ############################## Restic ###########################################
-                                                                                #
                                                                                 #
 schedule_backup="always"                                                        #
                                                                                 #
@@ -72,7 +71,8 @@ rclone_options="--log-level INFO"                                               
                                                                                 #
 #################################################################################
 
-              
+
+
 
 
 
@@ -98,205 +98,19 @@ rclone_options="--log-level INFO"                                               
 
 
 #################################################################################
-#                                                                               #
-#     Don't change anything from here if you don't know what you are doing      #
-#                                                                               #
+#                        Don't change the following lines                       #
 #################################################################################
 
-############################# Setup Paths #######################################
-
-export JOB_NAME="$unique_job_name"
-export HOME_PATH="$path_to_BackupScripts"
-export SOURCE="$path_to_the_directory_to_be_backed_up"
-export REPOSITORY="$path_to_restic_repository"
-export REMOTE="$rclone_remote_path"
-
-export DOCKER_SHUTDOWN_CONFIG="$HOME_PATH/Config/DockerConfig/$name_docker_config_file"
-export RESTIC_PW="$HOME_PATH/Config/RepositoryPassword/$name_restic_password_file"
-export RESTIC_FILTER="$HOME_PATH/Config/FilterConfig/ResticFilter/$name_restic_filter_file"
-export RCLONE_FILTER="$HOME_PATH/Config/FilterConfig/RcloneFilter/$name_rclone_filter_file"
-
-export NOTIFIER="$HOME_PATH/Executor/Notifier"
-ConditionHandler="$HOME_PATH/Executor/ConditionHandler"
-DockerHandler="$HOME_PATH/Executor/DockerHandler"
-ResticBackupExec="$HOME_PATH/Executor/ResticBackupExec"
-ResticForgetExec="$HOME_PATH/Executor/ResticForgetExec"
-ResticPruneExec="$HOME_PATH/Executor/ResticPruneExec"
-RcloneExec="$HOME_PATH/Executor/RcloneExec"
-
-############################## Check Preconditions ##############################
-
-directory_pahts=("$HOME_PATH" "$SOURCE" "$REPOSITORY")
-config_files=("$DOCKER_SHUTDOWN_CONFIG" "$RESTIC_PW" "$RESTIC_FILTER" "$RCLONE_FILTER")
-executable_files=("$NOTIFIER" "$ConditionHandler" "$DockerHandler" "$ResticBackupExec" "$ResticForgetExec" "$ResticPruneExec" "$RcloneExec")
-
-for directory in "${directory_pahts[@]}"; do
-    directory=$(echo "$directory" | cut -d':' -f1)
-    
-    if [ ! -d "$directory" ]; then
-        echo "ERROR: The directory $directory does not exist."
+if [ ! -f "$path_to_BackupScripts/Executor/MainExec" ]; then
+        echo "!!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!!!"
+        echo ""
+        echo "Project "BackupsScripts" was set up incorrectly."
+        echo "Please check the setup by following the instructions."
+        echo "-> File '$path_to_BackupScripts/Executor/MainExec' not found."
+        echo ""
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
         exit 1
-    fi
-done
-
-for file in "${config_files[@]}"; do
-    
-    if [ ! -f "$file" ]; then
-        echo "ERROR: The file $file does not exist."
-        exit 1
-    
-    
-    elif [ "$(tail -c 1 "$file"; echo x)" != "$(echo x)" ] && [ -n "$(tail -n 1 "$file")" ]; then
-        echo >> "$file"
-    fi
-done
-
-for file in "${executable_files[@]}"; do
-
-    if [ ! -f "$file" ]; then
-        echo "ERROR: $file does not exist"
-        exit 1
-    
-    elif [ ! -x "$file" ]; then
-        echo "ERROR: $file exists but is not executable"
-
-        chmod +x "$file"
-        
-        if [ $? -eq 0 ]; then
-            echo "-> $file was provided with execution rights"
-        else
-            echo "ERROR: The attempt to assign execution rights to the $file failed."
-            echo "-> Read the instructions and the setup files in the 'BackupScripts/SetupInstruction' directory"
-            echo "-> Use 'sudo chmod +x $file' to give the file the required rights"
-            exit 1
-        fi
-    fi
-done
-
-############################## Jobs #############################################
-
-$NOTIFIER --channel "file" --timestamps "false"
-$NOTIFIER --channel "file" --message "Starting '$JOB_NAME' ..."
-
-$ConditionHandler --task "evaluate" --type "execution"
-job_is_already_executed=$?
-if [[ "$job_is_already_executed" == 99 ]]; then
-    exit 0
-elif [[ "$job_is_already_executed" == 1 ]]; then
-    exit 1
 fi
+source $path_to_BackupScripts/Executor/MainExec
 
-############################## Update Restic & Rclone 
-
-$ConditionHandler --task "evaluate" --type "lock" --process "Update" --schedule "$schedule_update_Restic_and_Rclone"
-evaluation=$?
-
-if [[ "$evaluation" == 0 ]]; then
-    $DockerHandler --action "update"
-fi
-
-############################## Backup 
-
-$ConditionHandler --task "evaluate" --type "lock" --process "Backup" --schedule "$schedule_backup"
-evaluation=$?
-
-############### Stop Docker
-
-if [[ "$evaluation" == 0 ]]; then
-    $DockerHandler --action "stop"
-    stop_exit_code=$?
-fi
-
-if [[ "$evaluation" == 1 || "$stop_exit_code" == 1 ]]; then
-    $ConditionHandler --task "release" --type "execution"
-    exit 1
-fi
-
-############### Backup
-
-if [[ "$evaluation" == 0 ]]; then
-    $ResticBackupExec "$system_id_name" "$restig_backup_tags" "$restic_options"
-    backup_exit_code=$?
-fi
-
-if [[ "$backup_exit_code" == 1 ]]; then
-    $ConditionHandler --task "release" --type "execution"
-    exit 1
-fi
-
-############### Start Docker
-
-if [[ "$evaluation" == 0 ]]; then
-    $DockerHandler --action "start" --reverse "$reverse_order_at_start"
-    start_exit_code=$?
-fi
-
-if [[ "$start_exit_code" == 1 ]]; then
-    $ConditionHandler --task "release" --type "execution"
-    exit 1
-fi
-
-############################## Forget
-
-keep_rules="--keep-within-hourly $keep_hourly_for --keep-within-daily $keep_daily_for"
-keep_rules+=" --keep-within-weekly $keep_weekly_for --keep-within-monthly $keep_monthly_for"
-keep_rules+=" --keep-within-yearly $keep_yearly_for"
-
-$ConditionHandler --task "evaluate" --type "lock" --process "Forget" --schedule "$schedule_forget"
-evaluation=$?
-
-if [[ "$evaluation" == 0 ]]; then
-    $ResticForgetExec "$keep_rules"
-    forget_exit_code=$?
-fi
-
-if [[ "$evaluation" == 1 || "$forget_exit_code" == 1 ]]; then
-    $ConditionHandler --task "release" --type "execution"
-    exit 1
-fi
-
-############################## Prune
-
-$ConditionHandler --task "evaluate" --type "lock" --process "Prune" --schedule "$schedule_prune"
-evaluation=$?
-
-if [[ "$evaluation" == 0 ]]; then
-    $ResticPruneExec
-    prune_exit_code=$?
-fi
-
-if [[ "$evaluation" == 1 || "$prune_exit_code" == 1 ]]; then
-    $ConditionHandler --task "release" --type "execution"
-    exit 1
-fi
-
-############################## Rclone
-
-$ConditionHandler --task "evaluate" --type "lock" --process "Rclone" --schedule "$schedule_rclone"
-evaluation=$?
-
-if [[ "$evaluation" == 0 ]]; then
-    $RcloneExec "--log-file /LogFiles/${JOB_NAME}_$(date +'%Y-%m').log" "$rclone_options"
-    rclone_exit_code=$?
-fi
-
-if [[ "$evaluation" == 1 || "$rclone_exit_code" == 1 ]]; then
-    $ConditionHandler --task "release" --type "execution"
-    exit 1
-fi
-
-############################## Finished
-
-$ConditionHandler --task "release" --type "execution"
-
-completion_channel="file"
-if [[ "$notify_after_completion" = "true" ]]; then
-    completion_channel="system"
-fi
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "$completion_channel" --args "normal" --message "Execution of '$JOB_NAME' successfully finished"
-$NOTIFIER --channel "file" --timestamps "false"
-
-#################################################################################
-#                                      End                                      #
 #################################################################################
