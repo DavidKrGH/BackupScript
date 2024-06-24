@@ -12,7 +12,7 @@
                                                                                 #
 unique_job_name="ChangeMeToUniqueName"                                          # Unique job name. Do not use space or underscore!!!
                                                                                 #
-path_to_BackupScripts="/PATH/TO/BackupScripts"                                  # Path to BackupScripts directory. Does not support Docker volume propagation!
+path_to_BackupScript="/PATH/TO/BackupScript"                                    # Path to BackupScripts directory. Does not support Docker volume propagation!
                                                                                 #
 system_id_name="HOSTNAME"                                                       # Name to identify your System in Snapshots
                                                                                 #
@@ -22,7 +22,7 @@ schedule_update_Restic_and_Rclone="monthly: 1"                                  
                                                                                 #
 notify_after_completion="true"                                                  # (true/false) The notification system must be set up. See documentation.
                                                                                 #
-############################## Restic ###########################################
+############################## Backup (Restic) ##################################
                                                                                 #
 schedule_backup="always"                                                        #
                                                                                 #
@@ -38,7 +38,11 @@ name_restic_filter_file="DefaultResticFilter.txt"                               
                                                                                 #
 restic_options=""                                                               # Additional options specific to Restic. Check with the documentation.
                                                                                 #
-############################## Snapshot Rotation                                #
+name_docker_config_file="DockerExampleConfig.txt"                               #
+                                                                                #
+reverse_docker_start_sequence="false"                                           #
+                                                                                #
+############################## Forget (Restic) ##################################
                                                                                 #
 schedule_forget="weekly: Mon Wed Sat"                                           #
                                                                                 #
@@ -48,17 +52,11 @@ keep_weekly_for="3m"                                                            
 keep_monthly_for="1y"                                                           # Number of months to keep monthly snapshots
 keep_yearly_for="5y"                                                            # Number of years to keep yearly snapshots
                                                                                 #
-############################## Prune                                            #
+############################## Prune (Restic) ##################################
                                                                                 #
 schedule_prune="monthly: 1 15"                                                  #
                                                                                 #
-############################## Docker ###########################################
-                                                                                #
-name_docker_config_file="DockerExampleConfig.txt"                               #
-                                                                                #
-reverse_order_at_start="false"                                                  #
-                                                                                #
-############################## Rclone ###########################################
+############################## Remote Copy (Rclone) #############################
                                                                                 #
 schedule_rclone="weekly: The Sun"                                               #
                                                                                 #
