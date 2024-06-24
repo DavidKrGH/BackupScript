@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ####################################
 # MIT License Copyright (c) 2023 David Krumm                                    #
 # All rights reserved.                                                          #
@@ -8,14 +8,14 @@
 # LICENSE file in the root directory of this source tree.                       #
 #################################################################################
 #                                                                               #
-#                                 BackupScripts                                 #
+#                                 BackupScript                                  #
 #                                                                               #
 #################################################################################
 
 ############################# Setup Paths #######################################
 
 export JOB_NAME="$unique_job_name"
-export HOME_PATH="$path_to_BackupScripts"
+export HOME_PATH="$path_to_BackupScript"
 export SOURCE="$path_to_the_directory_to_be_backed_up"
 export REPOSITORY="$path_to_restic_repository"
 export REMOTE="$rclone_remote_path"
@@ -75,7 +75,7 @@ for file in "${executable_files[@]}"; do
             echo "-> $file was provided with execution rights"
         else
             echo "ERROR: The attempt to assign execution rights to the $file failed."
-            echo "-> Read the instructions and the setup files in the 'BackupScripts/SetupInstruction' directory"
+            echo "-> Read the instructions and the setup files in the 'BackupScript/SetupInstruction' directory"
             echo "-> Use 'sudo chmod +x $file' to give the file the required rights"
             exit 1
         fi
@@ -84,12 +84,12 @@ done
 
 ############################## Jobs #############################################
 
-exec_backup="false"
-exec_forget="false"
-exec_prune="false"
-exec_rclone="false"
+exec_backup=" "
+exec_forget=" "
+exec_prune=" "
+exec_rclone=" "
 
-$NOTIFIER --channel "file" --timestamps "false" --message \
+$NOTIFIER --timestamps "false" --message \
 "\n\
 ####################################################################################################\n\
 \tStarting '$JOB_NAME'\n\
@@ -137,7 +137,7 @@ fi
 if [[ "$evaluation" == 0 ]]; then
     $ResticBackupExec "$system_id_name" "$restig_backup_tags" "$restic_options"
     backup_exit_code=$?
-    exec_backup="true"
+    exec_backup="X"
 fi
 
 if [[ "$backup_exit_code" == 1 ]]; then
@@ -148,7 +148,7 @@ fi
 ############### Start Docker
 
 if [[ "$evaluation" == 0 ]]; then
-    $DockerHandler --action "start" --reverse "$reverse_order_at_start"
+    $DockerHandler --action "start" --reverse "$reverse_docker_start_sequence"
     start_exit_code=$?
 fi
 
@@ -169,7 +169,7 @@ evaluation=$?
 if [[ "$evaluation" == 0 ]]; then
     $ResticForgetExec "$keep_rules"
     forget_exit_code=$?
-    exec_forget="true"
+    exec_forget="X"
 fi
 
 if [[ "$evaluation" == 1 || "$forget_exit_code" == 1 ]]; then
@@ -185,7 +185,7 @@ evaluation=$?
 if [[ "$evaluation" == 0 ]]; then
     $ResticPruneExec
     prune_exit_code=$?
-    exec_prune="true"
+    exec_prune="X"
 fi
 
 if [[ "$evaluation" == 1 || "$prune_exit_code" == 1 ]]; then
@@ -201,7 +201,7 @@ evaluation=$?
 if [[ "$evaluation" == 0 ]]; then
     $RcloneExec "--log-file /LogFiles/${JOB_NAME}_$(date +'%Y-%m').log" "$rclone_options"
     rclone_exit_code=$?
-    exec_rclone="true"
+    exec_rclone="X"
 fi
 
 if [[ "$evaluation" == 1 || "$rclone_exit_code" == 1 ]]; then
@@ -213,22 +213,22 @@ fi
 
 $ConditionHandler --task "release" --type "execution"
 
-completion_channel="file"
+completion_channel="normal"
 if [[ "$notify_after_completion" = "true" ]]; then
-    completion_channel="system"
+    completion_channel="important"
 fi
 
-$NOTIFIER --channel "file" --timestamps "false" --message \
+$NOTIFIER --timestamps "false" --message \
 "\n\
 ####################################################################################################"
-$NOTIFIER --channel "$completion_channel" --args "normal" --timestamps "false" --message \
+$NOTIFIER --channel "$completion_channel" --timestamps "false" --message \
 "Execution of '$JOB_NAME' successfully finished.\n\n\
 Executed parts:\n\
-\tBackup=$exec_backup\n\
-\tForget=$exec_forget\n\
-\tPrune=$exec_prune\n\
-\tRcone=$exec_rclone"
-$NOTIFIER --channel "file" --timestamps "false" --message \
+\t[$exec_backup] Backup\n\
+\t[$exec_forget] Forget\n\
+\t[$exec_prune] Prune\n\
+\t[$exec_rclone] Rclone"
+$NOTIFIER --timestamps "false" --message \
 "####################################################################################################\n"
 
 #################################################################################

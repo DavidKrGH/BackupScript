@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         *)
-            $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler unknown option: $1"
+            $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME DockerHandler unknown option: $1"
             exit 1
             ;;
     esac
@@ -33,7 +33,7 @@ done
 
 # Check for necessary arguments
 if [[ -z "$action" ]]; then
-    $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler --action is required"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME DockerHandler --action is required"
     exit 1
 fi
 
@@ -55,11 +55,11 @@ pull_image() {
     fi
 
     if echo "$pull_output" | grep -q 'Downloaded newer image'; then
-        $NOTIFIER --channel "file" --message "$JOB_NAME: The image '$image_name' has been successfully updated."
+        $NOTIFIER --message "$JOB_NAME: The image '$image_name' has been successfully updated."
     elif echo "$pull_output" | grep -q 'Image is up to date'; then
-        $NOTIFIER --channel "file" --message "$JOB_NAME: The local image '$image_name' is already the latest version."
+        $NOTIFIER --message "$JOB_NAME: The local image '$image_name' is already the latest version."
     else
-        $NOTIFIER --channel "file" --message "$JOB_NAME: Unknown status when the image '$image_name' is being pulled: $pull_output"
+        $NOTIFIER --message "$JOB_NAME: Unknown status when the image '$image_name' is being pulled: $pull_output"
     fi
 }
 
@@ -75,7 +75,7 @@ list_started_containers() {
     docker ps --format "{{.ID}} {{.Names}}" > "$started_containers"
 
     if [ $? -ne 0 ]; then
-        $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Failed to query started containers"
+        $NOTIFIER --channel "important" --type "warning" --message "$JOB_NAME: Failed to query started containers"
         exit 1
     fi
 }
@@ -96,11 +96,11 @@ start_container() {
     while [[ "$(container_status "$id")" != "running" ]]; do
         sleep 1
         if (( $(date +%s) - start_time >= timeout )); then
-            $NOTIFIER --channel "system" --message "Error: $JOB_NAME timeout while starting container $name ($id)"
+            $NOTIFIER --channel "important" --message "Error: $JOB_NAME timeout while starting container $name ($id)"
             exit 1
         fi
     done
-    $NOTIFIER --channel "file" --message "Container $name ($id) started successfully."
+    $NOTIFIER --message "Container $name ($id) started successfully."
     return 0
 }
 
@@ -113,11 +113,11 @@ stop_container() {
     while [[ "$(container_status "$id")" != "exited" ]]; do
         sleep 1
         if (( $(date +%s) - start_time >= timeout )); then
-            $NOTIFIER --channel "system" --message "Error: $JOB_NAME timeout while stoping container $name ($id)"
+            $NOTIFIER --channel "important" --message "Error: $JOB_NAME timeout while stoping container $name ($id)"
             exit 1
         fi
     done
-    $NOTIFIER --channel "file" --message "Container $name ($id) stoped successfully."
+    $NOTIFIER --message "Container $name ($id) stoped successfully."
     return 0
 }
 
@@ -232,8 +232,8 @@ process_stop() {
 process_start() {
 
     if [ ! -f "$stoped_containers" ]; then
-        $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Start containers faild"
-        $NOTIFIER --channel "file" --message "Temporary file of the stopped container was lost"
+        $NOTIFIER --channel "important" --type "warning" --message "$JOB_NAME: Start containers faild"
+        $NOTIFIER --message "Temporary file of the stopped container was lost"
         exit 1
     fi
 
@@ -266,9 +266,9 @@ process_start() {
 
 if [[ "$action" == "update" ]]; then
 
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Starting 'Update' job"
-    $NOTIFIER --channel "file"
+    $NOTIFIER
+    $NOTIFIER --message "Starting 'Update' job"
+    $NOTIFIER
 
     pull_image "restic/restic"
     update_restic_result=$?
@@ -276,20 +276,20 @@ if [[ "$action" == "update" ]]; then
     update_rclone_result=$?
 
     if [[ "$update_restic_result" == 1 || "$update_rclone_result" == 1 ]]; then
-        $NOTIFIER --channel "system" --args "warning" --message "$JOB_NAME: Pull or update of Restic or Rclone failed."
-        $NOTIFIER --channel "file" --message "Restic exit code: '$update_restic_result'"
-        $NOTIFIER --channel "file" --message "Rclone exit code: '$update_rclone_result'"
-        $NOTIFIER --channel "file" --message "An attempt is made to continue."
+        $NOTIFIER --channel "important" --type "warning" --message "$JOB_NAME: Pull or update of Restic or Rclone failed."
+        $NOTIFIER --message "Restic exit code: '$update_restic_result'"
+        $NOTIFIER --message "Rclone exit code: '$update_rclone_result'"
+        $NOTIFIER --message "An attempt is made to continue."
         exit 0
     fi
 
 
 elif [[ "$action" == "stop" ]]; then
 
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Stopping the Docker containers"
-    $NOTIFIER --channel "file" --message "Config '$(basename "$DOCKER_SHUTDOWN_CONFIG")'"
-    $NOTIFIER --channel "file"
+    $NOTIFIER
+    $NOTIFIER --message "Stopping the Docker containers"
+    $NOTIFIER --message "Config '$(basename "$DOCKER_SHUTDOWN_CONFIG")'"
+    $NOTIFIER
     
     decode_config
     process_stop
@@ -303,6 +303,6 @@ elif [[ "$action" == "start" ]]; then
     
     
 else
-    $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME DockerHandler unknown action: $action"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME DockerHandler unknown action: $action"
     exit 1
 fi

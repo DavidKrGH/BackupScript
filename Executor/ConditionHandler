@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         *)
-            $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME ConditionHandler unknown option: $1"
+            $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME ConditionHandler unknown option: $1"
             exit 1
             ;;
     esac
@@ -42,7 +42,7 @@ done
 
 # Check for necessary arguments. 
 if [[ -z "$task" || -z "$type" ]]; then
-    $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME ConditionHandler --task and --type are required"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME ConditionHandler --task and --type are required"
     exit 1
 fi
 
@@ -129,14 +129,14 @@ decode_schedule() {
 if [ "$task" == "evaluate" ] && [ "$type" == "execution" ]; then
     
     if [[ -f "$marker_file" ]]; then
-        $NOTIFIER --channel "file"
-        $NOTIFIER --channel "system" --args "normal" --message "$JOB_NAME: Mark for 'execution' is already set"
+        $NOTIFIER
+        $NOTIFIER --channel "important" --args "normal" --message "$JOB_NAME: Mark for 'execution' is already set"
         exit 99
         
     else
         touch "$marker_file"
-        $NOTIFIER --channel "file"
-        $NOTIFIER --channel "file" --message "Create '$(basename "$marker_file")'"
+        $NOTIFIER
+        $NOTIFIER --message "Create '$(basename "$marker_file")'"
         exit 0
     fi
 
@@ -144,8 +144,8 @@ if [ "$task" == "evaluate" ] && [ "$type" == "execution" ]; then
 elif [ "$task" == "release" ] && [ "$type" == "execution" ]; then
 
     rm $marker_file
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Delete Mark '$(basename "$marker_file")'"
+    $NOTIFIER
+    $NOTIFIER --message "Delete Mark '$(basename "$marker_file")'"
     exit 0
 
 
@@ -154,8 +154,8 @@ elif [ "$task" == "evaluate" ] && [ "$type" == "lock" ]; then
     cleanup_locks
 
     if [[ -f "$marker_file" && $schedule != "always" ]]; then
-        $NOTIFIER --channel "file"
-        $NOTIFIER --channel "file" --message "Mark for '$(basename "$marker_file")' is already set"
+        $NOTIFIER
+        $NOTIFIER --message "Mark for '$(basename "$marker_file")' is already set"
         exit 99
     fi
 
@@ -163,29 +163,29 @@ elif [ "$task" == "evaluate" ] && [ "$type" == "lock" ]; then
     
     if [[ $result == "execute" ]] ; then
         touch "$marker_file"
-        $NOTIFIER --channel "file"
-        $NOTIFIER --channel "file" --message "Create '$(basename "$marker_file")'"
+        $NOTIFIER
+        $NOTIFIER --message "Create '$(basename "$marker_file")'"
         exit 0
 
     elif [[ $result == "skip" ]]; then
-        $NOTIFIER --channel "file"
-        $NOTIFIER --channel "file" --message "Skipped '$process' due to the schedule '$schedule'"
+        $NOTIFIER
+        $NOTIFIER --message "Skipped '$process' due to the schedule '$schedule'"
         exit 99
     elif [[ $result == "invalid" ]]; then
-        $NOTIFIER --channel "system" --args "warning" --message "ERROR: $process schedule '$schedule' is no valid option"
-        $NOTIFIER --channel "file" --message "Here are some examples of valid options:"
-        $NOTIFIER --channel "file" --message "'always'"
-        $NOTIFIER --channel "file" --message "'weekly: Mon, Tue, Thu, Sat'"
-        $NOTIFIER --channel "file" --message "'monthly: 12'"
-        $NOTIFIER --channel "file" --message "'never'"
+        $NOTIFIER --channel "important" --type "warning" --message "ERROR: $process schedule '$schedule' is no valid option"
+        $NOTIFIER --message "Here are some examples of valid options:"
+        $NOTIFIER --message "'always'"
+        $NOTIFIER --message "'weekly: Mon, Tue, Thu, Sat'"
+        $NOTIFIER --message "'monthly: 12'"
+        $NOTIFIER --message "'never'"
         exit 1
     else
-        $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME decode schedule '$schedule' faild"
+        $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME decode schedule '$schedule' faild"
         exit 1
     fi
     
     
 else
-    $NOTIFIER --channel "system" --args "warning" --message "ERROR: $JOB_NAME ConditionHandler command unknown"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME ConditionHandler command unknown"
     exit 1
 fi

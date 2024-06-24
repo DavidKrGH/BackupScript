@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -10,14 +10,15 @@
 
 ################################# Variables #################################
 
-timestamp="$(date +"%Y-%m-%d %H:%M:%S") - "                                 # Log timestamp
-log_file="$HOME_PATH/LogFiles/${JOB_NAME}_$(date +'%Y-%m').log"             # Path to log file
+timestamp="$(date +"%Y-%m-%d %H:%M:%S") - "                                         # Log timestamp
+log_file="$HOME_PATH/LogFiles/${JOB_NAME}/${JOB_NAME}_$(date +'%Y-%m').log"         # Path to log file
 mkdir -p "$(dirname "$log_file")"
 
 ############################## Parse Arguments ##############################
 
-args=""                                                                     # Specific argument
-message=""                                                                  # Message to send
+channel="normal"                                                                    # Output channel of notification
+type="normal"                                                                       # Type of message "normal, warning" 
+message=""                                                                          # Message to send
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -30,8 +31,8 @@ while [[ $# -gt 0 ]]; do
             message="$2"                        # name of subprocess
             shift 2
             ;;
-        --args)
-            args="$2"                           # running, lock or pulldate
+        --type)
+            type="$2"                           # running, lock or pulldate
             shift 2
             ;;
         --timestamps)
@@ -48,12 +49,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check for necessary arguments. 
-if [[ -z "$channel" ]]; then
-    echo "ERROR: $JOB_NAME Notifier --channel is required"
-    echo "ERROR: $JOB_NAME Notifier --channel is required" >> "$log_file"
-    exit 1
-fi
 
 #############################################################################
 #                  Adjust the code below to suit your needs                 # 
@@ -76,7 +71,7 @@ to_unraid_notification() {
     # Send to Unraid notification system
     local severity="$1"
     local msg="$2"
-    "/usr/local/emhttp/webGui/scripts/notify" -i "$severity" -e "BackupScripts" -s "$JOB_NAME" -d "$msg"
+    "/usr/local/emhttp/webGui/scripts/notify" -i "$severity" -e "BackupScript" -s "$JOB_NAME" -d "$msg"
 }
 
 to_mail() {
@@ -93,23 +88,16 @@ implement_your_nofification_system() {
     #
 }
 
-################################# Send ######################################
+########################### Output Channels #################################
 
-if [[ "$channel" == "terminal" ]]; then             # Message to logfile
-    to_terminal "${timestamp}${message}"
-
-elif [[ "$channel" == "file" ]]; then               # Message to logfile
+if [[ "$channel" == "normal" ]]; then               # Message to logfile
     to_terminal "${timestamp}${message}"
     to_logfile "${timestamp}${message}"
 
-elif [[ "$channel" == "system" ]]; then             # Message to notification system
+elif [[ "$channel" == "important" ]]; then             # Message to notification system
     to_terminal "${timestamp}${message}"
     to_logfile "${timestamp}${message}"
-    # to_unraid_notification "$args" "$message"     # Uncomment if you use Unraid as syste
+    # to_unraid_notification "$type" "$message"     # Uncomment if you use Unraid as syste
     # implement_your_nofification_system            # Implement your code to use
-
-elif [[ "$channel" == "mail" ]]; then               # Message to notification system
-    to_terminal "${timestamp}${message}"
-    to_logfile "${timestamp}${message}"
     # to_mail                                       # Implement your code to use
 fi                                                     

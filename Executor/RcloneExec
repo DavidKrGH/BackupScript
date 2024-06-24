@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -26,10 +26,10 @@ fi
 
 ################################# Rclone ####################################
 
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "Starting 'Rclone' job"
-$NOTIFIER --channel "file" --message "Source '$source'"
-$NOTIFIER --channel "file" --message "Remote '$REMOTE'"
+$NOTIFIER
+$NOTIFIER --message "Starting 'Rclone' job"
+$NOTIFIER --message "Source '$source'"
+$NOTIFIER --message "Remote '$REMOTE'"
 
 
 ################################### Backup
@@ -46,10 +46,10 @@ cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
     $options"
 
 # progress message
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "Rclone in progress ... "
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
+$NOTIFIER
+$NOTIFIER --message "Rclone in progress ... "
+$NOTIFIER
+$NOTIFIER --message "$cmd" --timestamps "false"
 
 eval $cmd
 exit_code=$?
@@ -57,12 +57,12 @@ exit_code=$?
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Completed 'Rclone' job to '$destination' successfully"
+    $NOTIFIER
+    $NOTIFIER --message "Completed 'Rclone' job to '$destination' successfully"
     exit 0
 else
-    $NOTIFIER --channel "file" --timestamps "false"
-    $NOTIFIER --channel "system" --args "warning" --message "ERROR $JOB_NAME: Rclone to '$destination' failed with exit_code=$exit_code"
-    $NOTIFIER --channel "file" --timestamps "false"
+    $NOTIFIER --timestamps "false"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR $JOB_NAME: Rclone to '$destination' failed with exit_code=$exit_code"
+    $NOTIFIER --timestamps "false"
     exit 1
 fi

@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ################################
 # MIT License Copyright (c) 2023 David Krumm                                #
 # All rights reserved.                                                      #
@@ -35,11 +35,11 @@ fi
 
 ################################### Restic ##################################
 
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "Starting 'Backup' job"
-$NOTIFIER --channel "file" --message "Source '$source'"
-$NOTIFIER --channel "file" --message "Repository '$repo'"
-$NOTIFIER --channel "file" --message "Filter '$(basename "$RESTIC_FILTER")'"
+$NOTIFIER
+$NOTIFIER --message "Starting 'Backup' job"
+$NOTIFIER --message "Source '$source'"
+$NOTIFIER --message "Repository '$repo'"
+$NOTIFIER --message "Filter '$(basename "$RESTIC_FILTER")'"
 
 ################################### Backup
 
@@ -57,25 +57,25 @@ cmd="docker run --rm --name $JOB_NAME-ResticBackup \
      $options"
 
 # progress message
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "Backup in progress ... "
-$NOTIFIER --channel "file"
-$NOTIFIER --channel "file" --message "$cmd" --timestamps "false"
+$NOTIFIER
+$NOTIFIER --message "Backup in progress ... "
+$NOTIFIER
+$NOTIFIER --message "$cmd" --timestamps "false"
 
 output=$(eval "$cmd" 2>&1)
 exit_code=$?
 output=${output//%/%%}
-$NOTIFIER --channel "file" --message "$output" --timestamps "false"
+$NOTIFIER --message "$output" --timestamps "false"
 
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    $NOTIFIER --channel "file"
-    $NOTIFIER --channel "file" --message "Completed 'Backup' job of '$source' successfully"
+    $NOTIFIER
+    $NOTIFIER --message "Completed 'Backup' job of '$source' successfully"
     exit 0
 else
-    $NOTIFIER --channel "file" --timestamps "false"
-    $NOTIFIER --channel "system" --args "warning" --message "ERROR $JOB_NAME: Backup of '$source' failed with exit_code=$exit_code"
-    $NOTIFIER --channel "file" --timestamps "false"
+    $NOTIFIER --timestamps "false"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR $JOB_NAME: Backup of '$source' failed with exit_code=$exit_code"
+    $NOTIFIER --timestamps "false"
     exit 1
 fi
