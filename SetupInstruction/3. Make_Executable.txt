@@ -1,8 +1,0 @@
-###################### Make Files Executable ################
-
-# Use to make the Executor filse executable
-# Change the /PATH/TO/ to point to BackupScripts directory
-
-
-
-chmod +x /PATH/TO/BackupScripts/Jobs/YourJobFileName

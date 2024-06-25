@@ -14,7 +14,7 @@ unique_job_name="ChangeMeToUniqueName"                                          
                                                                                 #
 path_to_BackupScript="/PATH/TO/BackupScript"                                    # Path to BackupScripts directory. Does not support Docker volume propagation!
                                                                                 #
-system_id_name="HOSTNAME"                                                       # Name to identify your System in Snapshots
+system_id_name="HOSTNAME"                                                       # Name to identify your System in Snapshots.
                                                                                 #
 schedule_update_Restic_and_Rclone="monthly: 1"                                  # Schedule for the execution of the respective sub-process:
                                                                                 # "never", "always", "weekly: Mon Tue Wed Thu Fri Sat Sun", "monthly: 1 7 14 21 28"
@@ -30,27 +30,27 @@ path_to_the_directory_to_be_backed_up="/PATH/TO/DATA:ro"                        
                                                                                 #
 path_to_restic_repository="/PATH/TO/REPO:rw,slave"                              # Path to the backup repository. Support for Docker volume propagation! E.G. "/PATH/TO/REPO:rw,slave" ro=read-only, rw=read-write 
                                                                                 #
-name_restic_password_file="restic-repo.password"                                # File in Config/RepositoryPassword. Insert yor repository password first.
+name_restic_password_file="restic-repo.password"                                # Name of a password file in the path "BackupScript > Config > RepositoryPassword".
                                                                                 #
-restig_backup_tags="--tag FirstTag --tag SecondTag"                             # Tags to be applied to the backup snapshots
+restig_backup_tags="--tag FirstTag --tag SecondTag"                             # Tags to be applied to the backup snapshots.
                                                                                 #
-name_restic_filter_file="DefaultResticFilter.txt"                               # Filter file to exclude specific files or directories from the backup
+name_restic_filter_file="DefaultResticFilter.txt"                               # Name of a configuration file in the path "BackupScript > Config > ResticFilter".
                                                                                 #
 restic_options=""                                                               # Additional options specific to Restic. Check with the documentation.
                                                                                 #
-name_docker_config_file="DockerExampleConfig.txt"                               #
+name_docker_config_file="DefaultDockerConfig.txt"                               # Name of a configuration file in the path "BackupScript > Config > DockerConfig".
                                                                                 #
-reverse_docker_start_sequence="false"                                           #
+reverse_docker_start_sequence="false"                                           # (true/false) Option to reverse the order of the Docker containers when starting.
                                                                                 #
 ############################## Forget (Restic) ##################################
                                                                                 #
 schedule_forget="weekly: Mon Wed Sat"                                           #
                                                                                 #
-keep_hourly_for="48h"                                                           # Number of hours to keep hourly snapshots
-keep_daily_for="7d"                                                             # Number of days to keep daily snapshots
-keep_weekly_for="3m"                                                            # Number of weeks to keep weekly snapshots
-keep_monthly_for="1y"                                                           # Number of months to keep monthly snapshots
-keep_yearly_for="5y"                                                            # Number of years to keep yearly snapshots
+keep_hourly_for="48h"                                                           # Number of hours to keep hourly snapshots.
+keep_daily_for="7d"                                                             # Number of days to keep daily snapshots.
+keep_weekly_for="3m"                                                            # Number of weeks to keep weekly snapshots.
+keep_monthly_for="1y"                                                           # Number of months to keep monthly snapshots.
+keep_yearly_for="5y"                                                            # Number of years to keep yearly snapshots.
                                                                                 #
 ############################## Prune (Restic) ##################################
                                                                                 #
@@ -60,12 +60,12 @@ schedule_prune="monthly: 1 15"                                                  
                                                                                 #
 schedule_rclone="weekly: The Sun"                                               #
                                                                                 #
-rclone_remote_path="RemoteName:/PATH/ON/REMOTE"                                 # Destination remote for Rclone. Does not support Docker volume propagation!
+rclone_remote_path="RemoteName:/PATH/ON/REMOTE"                                 # Remote destination for Rclone. Does not support Docker volume propagation!
                                                                                 #
-name_rclone_filter_file="DefaultRcloneFilter.txt"                               # Filter file to exclude specific files or directories from the backup to remote
+name_rclone_filter_file="DefaultRcloneFilter.txt"                               # Name of a configuration file in the path "BackupScript > Config > RcloneFilter".
                                                                                 #
 rclone_options="--log-level INFO"                                               # Additional options specific to Rclone. Check with the documentation.
-                                                                                # Example: --dry-run --max-delete=50 --bwlimit 10M --log-level DEBUG
+                                                                                # Example: "--dry-run" "--max-delete=50" "--bwlimit 10M" "--log-level DEBUG".
                                                                                 #
 #################################################################################
 

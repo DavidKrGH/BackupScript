@@ -81,22 +81,22 @@ To install and set up the project, please follow the steps below:
 ```
 
 ### **2. Setup backup repository** ###
-- A repository must be created before use. This is where the incremental backups are stored. You can add all backup jobs to the same repository or create a separate repository for each job. Restic [Documentation] (https://restic.readthedocs.io/en/latest/) is used to create the backups. To create a repository, follow the instructions in "BackupScript>SetupInstruction>Create_Repository.txt".
+- A repository must be created before use. This is where the incremental backups are stored. You can add all backup jobs to the same repository or create a separate repository for each job. Restic [documentation] (https://restic.readthedocs.io/en/latest/) is used to create the backups. To create a repository, follow the instructions in "BackupScript > SetupInstruction > Create_Repository.txt".
 
 ### **3. (Optional) Setup remote system** ###
-- To increase the security of the backups, the repository can be transferred to a remote system or cloud. Rclone [Documentation] (https://rclone.org/docs/) is used for this purpose. Rclone offers a variety of options for connecting to a remote system or cloud. Before using a new connection for the first time, it must be configured according to the Rclone documentation [Configure] (https://rclone.org/docs/#configure). If no remote backups are required, this step can be skipped. However, the schedule for Rclone in the backup job must then be set to "never". If you have decided to use a remote system, you can start the interactive setup process by following the instructions in "BackupScript>SetupInstruction>Create_Rclone_Config.txt". All information required for the setup process is provided by the Rclone documentation. Adding new connections or changing existing ones is possible at any time.
+- To increase the security of the backups, the repository can be transferred to a remote system or cloud. Rclone [documentation] (https://rclone.org/docs/) is used for this purpose. Rclone offers a variety of options for connecting to a remote system or cloud. Before using a new connection for the first time, it must be configured according to the Rclone [documentation] (https://rclone.org/docs/#configure). If no remote backups are required, this step can be skipped. However, the schedule for Rclone in the backup job must then be set to "never". If you have decided to use a remote system, you can start the interactive setup process by following the instructions in "BackupScript > SetupInstruction > Create_Rclone_Config.txt". All information required for the setup process is provided by the Rclone documentation. Adding new connections or changing existing ones is possible at any time.
 
 ### **4. Setup backup job** ###
-- New backup jobs are created by configuring a job. A pre-filled template is provided for this purpose. Create a copy of the "JobTemplate" file in the "BackupScript>Jobs" directory and give it a unique name (avoid using spaces and underscores). A description of the configuration of new jobs is given in the section [Usage](#usage). By copying the template, any number of jobs with different configurations can be created.
+- New backup jobs are created by configuring a job. A pre-filled template is provided for this purpose. Create a copy of the "JobTemplate" file in the "BackupScript > Jobs" directory and give it a unique name (avoid using spaces and underscores). A description of the configuration of new jobs is given in the section [Usage](#usage). By copying the template, any number of jobs with different configurations can be created.
 
 ### **4. (Optional) Setup notification** ###
-- If important events occur during the execution of a script, a notification can be sent. This is already prepared for the unraid notification system. To activate this function, the script "BackupScript>Executor>Notifier" must be opened with an editor. Activation is done by removing the "#" at the beginning of line 100. "Notifier" is designed so that further interfaces for notifications can be added as functions. Implement the interfaces required for your needs and add the methods in the desired "Output Channel".
+- If important events occur during the execution of a script, a notification can be sent. This is already prepared for the unraid notification system. To activate this function, the script "BackupScript > Executor > Notifier" must be opened with an editor. Activation is done by removing the "#" at the beginning of line 100. "Notifier" is designed so that further interfaces for notifications can be added as functions. Implement the interfaces required for your needs and add the methods in the desired "Output Channel".
 
 ## Usage<a name="usage"></a>
 
 ###  Setting up a backup job ###
 
-Once the setup is complete, any number of backup jobs can be created. To quickly and easily create a backup job, a job template is provided. The file "JobTemplate" can be found under "BackupScript>Jobs". By creating a copy, the template can be customized to the desired backup job. For this purpose, a number of variables are available that can be used to configure the backup job. Please do not change the names of the variables or the range under them. It is also not necessary to change the files in the executor directory, with the exception of "Notifier" for setting up custom notification interfaces.
+Once the setup is complete, any number of backup jobs can be created. To quickly and easily create a backup job, a job template is provided. The file "JobTemplate" can be found under "BackupScript > Jobs". By creating a copy, the template can be customized to the desired backup job. For this purpose, a number of variables are available that can be used to configure the backup job. Please do not change the names of the variables or the range under them. It is also not necessary to change the files in the executor directory, with the exception of "Notifier" for setting up custom notification interfaces.
 
 A backup job consists of a total of four sub-processes:
 1. **Backup (Restic)** In this step, the source directory is scanned and a new snapshot is added to the repository. As in some cases Docker containers have to be stopped for a backup (e.g. when backing up a database), they can be stopped during the backup using a configuration file and then restarted.
@@ -104,42 +104,43 @@ A backup job consists of a total of four sub-processes:
 3. **Prune (Restic)**: When "forgetting", only the incremental links are removed, but no data is deleted from the repository. This is achieved by running "Prune". This searches for files that are not linked to any existing snapshot and can therefore be deleted.
 4. **Remote Copy (Rclone)**: Rclone is used to transfer the local repository to a remote system. In this process, the selected Rclone configuration is used and the repository is transferred. The script uses the "sync" mode of Rclone. Therefore, files that are no longer present in the local repository are also removed from the remote repository.
 
-The sub-processes "Backup", "Forget", "Prune" and "Remote Copy" have their own schedule. This is independent of the job's execution schedule. Regardless of how often the job is executed, the respective sub-process is only executed if this is provided for by the respective schedule. Sub-processes can be executed "never", "always", on certain days of the week "weekly" or on certain days of the month "monthly". If the "weekly" or "monthly" pattern is used, the sub-process is only executed once on the day in question. This makes it possible, for example, to create a local backup every 5 minutes by executing the job at this interval and setting the schedule for "Backup" to "always", but only copying to the remote system on certain days using a "weekly" schedule. To prevent re-execution, "Lock files" are created under the path "BackupScript > ConditionMarks" with the designation of the job name and the sub-process. If a sub-process is to be executed a second time, the schedule can be set to "always" for a short time or the relevant lock file must be deleted manually from the "ConditionMarks" directory. Obsolete lock files are deleted automatically
+The sub-processes "Backup", "Forget", "Prune" and "Remote Copy" have their own schedule. This is independent of the job's execution schedule. Regardless of how often the job is executed, the respective sub-process is only executed if this is provided for by the respective schedule. Sub-processes can be executed "never", "always", on certain days of the week "weekly" or on certain days of the month "monthly". This means that "weekly: Mon Thu Sat" is executed on the weekdays Monday, Thursday and Saturday. In contrast, "monthly: 7 21 28" is executed on the respective calendar days of a month. If the "weekly" or "monthly" pattern is used, the sub-process is only executed once on the day in question. This makes it possible, for example, to create a local backup every 5 minutes by executing the job at this interval and setting the schedule for "Backup" to "always", but only copying to the remote system on certain days using a "weekly" schedule. To prevent re-execution, "Lock files" are created under the path "BackupScript > ConditionMarks" with the designation of the job name and the sub-process. If a sub-process is to be executed a second time, the schedule can be set to "always" for a short time or the relevant lock file must be deleted manually from the "ConditionMarks" directory. Obsolete lock files are deleted automatically
 
-An overview of all the variables available is listed below with descriptions. It is recommended that you read about the variables before using this script. In all other cases, a look at the documentation of restic and rclone will also help.
+An overview of all the variables available is listed below with descriptions. It is recommended that you read about the variables before using this script. In all other cases, a look at the documentation of Restic and Rclone will also help.
 
 ### Job Configuration ###
 
 The most important variables to configure are:
 
-- `unique_job_name`: The name of the script or the backup job. Must be unique, as this is used to detect whether the backup job is already running.
-- `path_to_BackupScript`: The path to the "BackupScript" directory containing the script and its utilities.
+- `unique_job_name`: The name of the script or backup job. Must be unique as it is used to recognise whether the backup task is already running. Avoid spaces or underscores!
+- `path_to_BackupScript`: The path to the "BackupScript" directory containing the script and its utilities on your system.
 - `system_id_name`: The name used to identify your system in the snapshots.
-- `schedule_update_Restic_and_Rclone`:
-- `notify_after_completion`:
-- `schedule_backup`:
-- `path_to_the_directory_to_be_backed_up`: The source directory to be backed up. Support for [Docker volume propagation](https://docs.docker.com/storage/bind-mounts/)! E.G. "/PATH/TO/DATA:rw,slave".  
-- `path_to_restic_repository`: The path to the backup repository where the backups will be stored. Support for [Docker volume propagation](https://docs.docker.com/storage/bind-mounts/)! E.G. "/PATH/TO/REPO:rw,slave"
-- `name_restic_password_file`: The file name containing the password for the backup repository.
-- `restig_backup_tags`: Tags to be assigned to the snapshots of the backup.
-- `name_restic_filter_file`: Restic allows you to set a filter file. To set it up, see the documentation. 
-- `restic_options`: Additional options specific to Restic. See the `restic_options` in the restic documentation.
-- `name_docker_config_file`: 
-- `reverse_docker_start_sequence`: 
-- `schedule_forget`: Schedule for the execution of the Restic forget process.
+- `schedule_update_Restic_and_Rclone`: Schedule for the search for updates for Restic and Rclone. Examples: "never" "always" "weekly: Mon Thu Sat" "monthly: 7 21 28"
+- `notify_after_completion`: Option to send a notification after the job has been successfully executed. Options: "true" "false"
+- `schedule_backup`: Schedule for the execution of the "Backup" sub-process. Examples: "never" "always" "weekly: Mon Thu Sat" "monthly: 7 21 28"
+- `path_to_the_directory_to_be_backed_up`: The source directory to be backed up. Support for [Docker volume propagation](https://docs.docker.com/storage/bind-mounts/)! E.G. "/PATH/TO/DIRECTORY:rw,slave". By using "ro", access can be restricted to read only.
+- `path_to_restic_repository`: The path to the backup repository where the backups will be stored. Support for [Docker volume propagation](https://docs.docker.com/storage/bind-mounts/)! E.G. "/PATH/TO/REPO:rw,slave". Write authorisation is required!
+- `name_restic_password_file`: Name of a password file in the path "BackupScript > Config > RepositoryPassword" for encrypting your backup repository.
+- `restig_backup_tags`: Tags to be assigned to the snapshots of the backup. Can be used to label snapshots. Tags are searchable.
+- `name_restic_filter_file`: Name of a configuration file in the path "BackupScript > Config > ResticFilter" to exclude directories/files from the backup. To set it up, see the [documentation](https://restic.readthedocs.io/en/latest/040_backup.html#excluding-files). 
+- `restic_options`: Possibility to add further options specific to Restic according to the [documentation](https://restic.readthedocs.io/en/latest/040_backup.html#). Example: "--dry-run"
+- `name_docker_config_file`: Name of a configuration file in the path "BackupScript > Config > DockerConfig" to control the handling of running Docker containers during the backup. A sample configuration is provided.
+- `reverse_docker_start_sequence`: Option to reverse the order of the Docker containers when starting: Options: "true" "false"
+- `schedule_forget`: Schedule for the execution of the "Forget" sub-process. Examples: "never" "always" "weekly: Mon Thu Sat" "monthly: 7 21 28"
 - `keep_*_for`: Time periods for keeping snapshots.
-- `schedule_prune`: The schedule for removing old snapshots from the repository.
-- `rclone_remote_path`: The schedule for running Rclone.
-- `name_rclone_filter_file`: The destination for Rclone.
-- `rclone_options`: Additional options specific to Rclone.
+- `schedule_prune`: Schedule for the execution of the "Prune" sub-process. Examples: "never" "always" "weekly: Mon Thu Sat" "monthly: 7 21 28"
+- `rclone_remote_path`: Name of the configuration and path for the remote system. Example: "RemoteName:/PATH/ON/REMOTE"
+- `name_rclone_filter_file`:  Name of a configuration file in the path "BackupScript > Config > RcloneFilter" to exclude directories/files from the copy to remote system. To set it up, see the [documentation](https://rclone.org/filtering/). 
+- `rclone_options`: Possibility to add further options specific to Rclone according to the [documentation](https://rclone.org/docs/). Example: "--dry-run" "--max-delete=50" "--bwlimit 10M" "--log-level DEBUG"
 
 ### Execution of the script ###
 
-In order to automatically execute the backup defined in the backup job, a schedule must be created. Unraid offers the "User Scripts" plugin for this purpose. This is a convenient way to execute scripts with a cron job. How to set up a cron job via terminal can be found in these instructions [Cron jobs](https://www.freecodecamp.org/news/cron-jobs-in-linux/). The execution of the backup job then takes place at the defined frequency, whereby the "backup process" is implemented with every execution and the other processes of the schedules defined in the script.
+To execute a backup job, the job must be given the necessary authorisation. To do this, follow the instructions "BackupScript > SetupInstruction > Setup_Job.txt".
+The "User Scripts" plugin can be used under Unraid to automate the execution of a backup job. Alternatively, every Linux system offers the option of setting up automation via a cron job. You can find detailed instructions here: [Cron-Jobs] (https://www.freecodecamp.org/news/cron-jobs-in-linux/). The backup job is then executed at the specified frequency.
 
-### Mounting the repository ###
+### Restore Data ###
 
-Restic allows you to make the contents of a backup repository accessible as a regular file system on your computer or server. This allows you to access individual files or directories within the repository without having to restore the entire backup. This process is called mounting. How to mount a repository can be found in the instructions from "BackupScript>SetupInstuctions>Mount_Repository". How to use a mounted repository is described in the documentation of restic.
+With Restic, you can make the content of a backup repository accessible like a normal file system. This allows you to access individual files or directories within the repository without having to restore the entire backup. This process is known as mounting. You can find out how to mount a repository and restore data in the instructions of "BackupScript > SetupInstuctions > Restore_Data.txt". You can find all the options for restoring a backup in the [documentation](https://restic.readthedocs.io/en/latest/050_restore.html#) from restic.
 
 
 

@@ -1,0 +1,21 @@
+###################### Make Job Executable ################
+
+# Use to make a job file executable
+# Change the /PATH/TO/ to point to BackupScripts directory
+# Change YourJobFileName to the name of your job file
+
+
+chmod +x /PATH/TO/BackupScripts/Jobs/YourJobFileName
+
+
+###################### Create Cron Job ################
+# https://www.freecodecamp.org/news/cron-jobs-in-linux/
+
+# Open a terminal window on your system.
+# Open your cron job overview with an editor using
+
+contab -e
+
+# Add a job to the file. Example:
+
+* 1 * * * /PATH/TO/BackupScripts/Jobs/YourJobFileName
