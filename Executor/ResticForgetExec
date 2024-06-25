@@ -42,9 +42,8 @@ cmd="docker run --rm --name $JOB_NAME-ResticForget \
 # progress message
 $NOTIFIER
 $NOTIFIER --message "Forget in progress ... "
-$NOTIFIER --message "Keep-Rules: '$keep_rules'"
-$NOTIFIER
-$NOTIFIER --message "$cmd" --timestamps "false"
+$NOTIFIER --timestamps "false"
+#$NOTIFIER --message "$cmd" --timestamps "false"
 
 output=$(eval "$cmd" 2>&1)
 exit_code=$?
@@ -54,7 +53,7 @@ $NOTIFIER --message "$output" --timestamps "false"
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    $NOTIFIER
+    $NOTIFIER --timestamps "false"
     $NOTIFIER --message "Completed 'Forget' job of '$repo' successfully"
     exit 0
 else

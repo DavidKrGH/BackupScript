@@ -37,7 +37,7 @@ $NOTIFIER --message "Remote '$REMOTE'"
 cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
     --volume $HOME_PATH/Config/RcloneConfig:/config/rclone \
     --volume $(dirname "$RCLONE_FILTER"):/filterfile \
-    --volume $HOME_PATH/LogFiles:/logfiles \
+    --volume $HOME_PATH/LogFiles/${JOB_NAME}:/logfiles \
     --volume $source:/source$source_prop \
     --user $(id -u):$(id -g) \
     rclone/rclone sync /source $REMOTE \
@@ -48,8 +48,8 @@ cmd="docker run --rm --name $JOB_NAME-RcloneBackup \
 # progress message
 $NOTIFIER
 $NOTIFIER --message "Rclone in progress ... "
-$NOTIFIER
-$NOTIFIER --message "$cmd" --timestamps "false"
+$NOTIFIER --timestamps "false"
+#$NOTIFIER --message "$cmd" --timestamps "false"
 
 eval $cmd
 exit_code=$?
@@ -57,12 +57,12 @@ exit_code=$?
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    $NOTIFIER
-    $NOTIFIER --message "Completed 'Rclone' job to '$destination' successfully"
+    $NOTIFIER --timestamps "false"
+    $NOTIFIER --message "Completed 'Rclone' job to '$REMOTE' successfully"
     exit 0
 else
     $NOTIFIER --timestamps "false"
-    $NOTIFIER --channel "important" --type "warning" --message "ERROR $JOB_NAME: Rclone to '$destination' failed with exit_code=$exit_code"
+    $NOTIFIER --channel "important" --type "warning" --message "ERROR $JOB_NAME: Rclone to '$REMOTE' failed with exit_code=$exit_code"
     $NOTIFIER --timestamps "false"
     exit 1
 fi

@@ -1,7 +1,7 @@
 ###################### Create Rclone Config #####################
 
 # Run this docker command to create or change your rclone configurations.
-# Replace /PATH/TO/ to the location of your BackupScripts directory.
+# Replace /PATH/TO/ to the location of your BackupScript directory.
 # Rclone will start an interactive session where you will be guided 
 # through the configuration process.
 # Visit the rclone documentations to setup your config.
@@ -11,6 +11,6 @@
 
 
 docker run -i --rm \
---volume /PATH/TO/BackupScripts/Config/RcloneConfig:/config/rclone \
+--volume /PATH/TO/BackupScript/Config/RcloneConfig:/config/rclone \
 --user $(id -u):$(id -g) \
 rclone/rclone config

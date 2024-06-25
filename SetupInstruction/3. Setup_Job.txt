@@ -1,11 +1,11 @@
 ###################### Make Job Executable ################
 
 # Use to make a job file executable
-# Change the /PATH/TO/ to point to BackupScripts directory
+# Change the /PATH/TO/ to point to BackupScript directory
 # Change YourJobFileName to the name of your job file
 
 
-chmod +x /PATH/TO/BackupScripts/Jobs/YourJobFileName
+chmod +x /PATH/TO/BackupScript/Jobs/YourJobFileName
 
 
 ###################### Create Cron Job ################
@@ -18,4 +18,4 @@ contab -e
 
 # Add a job to the file. Example:
 
-* 1 * * * /PATH/TO/BackupScripts/Jobs/YourJobFileName
+* 1 * * * /PATH/TO/BackupScript/Jobs/YourJobFileName

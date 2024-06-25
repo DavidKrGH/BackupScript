@@ -1,10 +1,10 @@
 ###################### Create New Repository ################
 
 # Run this command to create a new restic repository
-# Replace /PATH/TO/ with the location of your BackupScripts directory
+# Replace /PATH/TO/ with the location of your BackupScript directory
 # Create a new empty directory for your repository in the desired location
 # Replace /PATH/TO/YOUR/REPOSITORIE with the path to your repository
-# Edit or create a new restic-repo.password file under "BackupScripts > Config > RepositoryPassword"
+# Edit or create a new restic-repo.password file under "BackupScript > Config > RepositoryPassword"
 # Replace PASSWORD.FILE with the correct file name
 # If you want to have different passwords you can change the name of the file.
 # Do not change the location of the password files
@@ -16,7 +16,7 @@
 
 
 docker run -i --rm \
---volume /PATH/TO/BackupScripts:/home \
+--volume /PATH/TO/BackupScript:/home \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \

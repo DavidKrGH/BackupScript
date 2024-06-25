@@ -38,8 +38,8 @@ cmd="docker run --rm --name $JOB_NAME-ResticPrune \
 # progress message
 $NOTIFIER
 $NOTIFIER --message "Prune in progress ... "
-$NOTIFIER
-$NOTIFIER --message "$cmd" --timestamps "false"
+$NOTIFIER --timestamps "false"
+#$NOTIFIER --message "$cmd" --timestamps "false"
 
 output=$(eval "$cmd" 2>&1)
 exit_code=$?
@@ -49,7 +49,7 @@ $NOTIFIER --message "$output" --timestamps "false"
 ################################# Evaluation ################################
 
 if [[ "$exit_code" == 0 ]]; then
-    $NOTIFIER
+    $NOTIFIER --timestamps "false"
     $NOTIFIER --message "Completed 'Prune' job of '$repo' successfully"
     exit 0
 else

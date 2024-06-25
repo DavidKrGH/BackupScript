@@ -1,5 +1,5 @@
 #!/bin/bash
-# BackupScripts version 2.0.0
+# BackupScript version 2.0.0
 #################################### License ####################################
 # MIT License Copyright (c) 2023 David Krumm                                    #
 # All rights reserved.                                                          #
@@ -7,12 +7,12 @@
 # This source code is licensed under the MIT license found in the               #
 # LICENSE file in the root directory of this source tree.                       #
 #################################################################################
-#                                 BackupScripts                                 #
+#                                 BackupScript                                  #
 #################################################################################
                                                                                 #
 unique_job_name="ChangeMeToUniqueName"                                          # Unique job name. Do not use space or underscore!!!
                                                                                 #
-path_to_BackupScript="/PATH/TO/BackupScript"                                    # Path to BackupScripts directory. Does not support Docker volume propagation!
+path_to_BackupScript="/PATH/TO/BackupScript"                                    # Path to BackupScript directory. Does not support Docker volume propagation!
                                                                                 #
 system_id_name="HOSTNAME"                                                       # Name to identify your System in Snapshots.
                                                                                 #
@@ -52,7 +52,7 @@ keep_weekly_for="3m"                                                            
 keep_monthly_for="1y"                                                           # Number of months to keep monthly snapshots.
 keep_yearly_for="5y"                                                            # Number of years to keep yearly snapshots.
                                                                                 #
-############################## Prune (Restic) ##################################
+############################## Prune (Restic) ###################################
                                                                                 #
 schedule_prune="monthly: 1 15"                                                  #
                                                                                 #
@@ -95,20 +95,22 @@ rclone_options="--log-level INFO"                                               
 
 
 
+
+
 #################################################################################
 #                        Don't change the following lines                       #
 #################################################################################
 
-if [ ! -f "$path_to_BackupScripts/Executor/MainExec" ]; then
+if [ ! -f "$path_to_BackupScript/Executor/MainExec" ]; then
         echo "!!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!!!"
         echo ""
         echo "Project "BackupsScripts" was set up incorrectly."
         echo "Please check the setup by following the instructions."
-        echo "-> File '$path_to_BackupScripts/Executor/MainExec' not found."
+        echo "-> File '$path_to_BackupScript/Executor/MainExec' not found."
         echo ""
         echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
         exit 1
 fi
-source $path_to_BackupScripts/Executor/MainExec
+source $path_to_BackupScript/Executor/MainExec
 
 #################################################################################

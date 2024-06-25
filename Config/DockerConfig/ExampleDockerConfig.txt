@@ -35,5 +35,5 @@
 
 # Excluded explicitly from starting and stopping. 
 - ContainerName
-- Cont*
-- Cont*-Server
+- Contai*
+- Contai*-Server

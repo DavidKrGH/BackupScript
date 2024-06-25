@@ -1,7 +1,7 @@
 ###################### Interact with Repository ################
 
 # Use this Docker command to interact with the repository.
-# Replace /PATH/TO/ to the location of your BackupScripts directory.
+# Replace /PATH/TO/ to the location of your BackupScript directory.
 # Replace /PATH/TO/YOUR/REPOSITORIE to the location of your Repository directory.
 # Replace PASSWORD.FILE with the correct file name
 # Replace YourResticCommands with the commands you want to use.
@@ -11,7 +11,7 @@
 
 
 docker run -i --rm \
---volume /PATH/TO/BackupScripts:/home \
+--volume /PATH/TO/BackupScript:/home \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \
@@ -24,7 +24,7 @@ YourResticCommands
 ###################### Remove Lock from Repository ################
 
 # Use this Docker command to remove a lock of your repository.
-# Replace /PATH/TO/ to the location of your BackupScripts directory.
+# Replace /PATH/TO/ to the location of your BackupScript directory.
 # Replace /PATH/TO/YOUR/REPOSITORIE to the location of your Repository directory.
 
 # https://restic.readthedocs.io/en/latest/
@@ -32,7 +32,7 @@ YourResticCommands
 
 
 docker run -i --rm \
---volume /PATH/TO/BackupScripts:/home \
+--volume /PATH/TO/BackupScript:/home \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --user $(id -u):$(id -g) \
 restic/restic \

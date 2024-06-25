@@ -3,7 +3,7 @@
 ###################### Mounting
 
 # Run this command to mount your repository to a empty folder 
-# Replace /PATH/TO/ to the location of your BackupScripts directory
+# Replace /PATH/TO/ to the location of your BackupScript directory
 # Replace /PATH/TO/YOUR/DATA to your data directory
 # Replace /PATH/TO/YOUR/REPOSITORIE to your repository
 # Replace PASSWORD.FILE with the correct file name
@@ -17,7 +17,7 @@
 docker run --rm \
 --name ResticMounted \
 --device /dev/fuse --cap-add SYS_ADMIN \
---volume /PATH/TO/BackupScripts:/home \
+--volume /PATH/TO/BackupScript:/home \
 --volume /PATH/TO/YOUR/DATA:/restore \
 --volume /PATH/TO/YOUR/REPOSITORIE:/repo \
 --volume /PATH/TO/EMPTY/DIR:/mountdir \
