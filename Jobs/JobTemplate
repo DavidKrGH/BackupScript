@@ -12,8 +12,6 @@
                                                                                 #
 unique_job_name="ChangeMeToUniqueName"                                          # Unique job name. Do not use space or underscore!!!
                                                                                 #
-path_to_BackupScript="/PATH/TO/BackupScript"                                    # Path to BackupScript directory. Does not support Docker volume propagation!
-                                                                                #
 system_id_name="HOSTNAME"                                                       # Name to identify your System in Snapshots.
                                                                                 #
 schedule_update_Restic_and_Rclone="monthly: 1"                                  # Schedule for the execution of the respective sub-process:
@@ -97,20 +95,37 @@ rclone_options="--log-level INFO"                                               
 
 
 
+
+
 #################################################################################
 #                        Don't change the following lines                       #
 #################################################################################
-
+path_to_BackupScript=$(dirname "$(dirname "$(readlink -f "$0")")")
+error_message="\
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\
+\n\
+Project 'BackupsScript' was set up incorrectly.\n\
+Please check the setup by following the instructions.\n\
+This path '$path_to_BackupScript' should point to the root directory of BackupScript.\n\
+\n\
+Compare:\n\
+\n\
+└── BackupScript\n\
+    ├── Config\n\
+    │   ├── DockerConfig\n\
+    │   ├── FilterConfig\n\
+    │   ├── RcloneConfig\n\
+    │   └── RepositoryPassword\n\
+    ├── Executor\n\
+    ├── Jobs\n\
+    │   └── YourBackupJob\n\
+    └── SetupInstructions\n\
+\n\
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\
+"
 if [ ! -f "$path_to_BackupScript/Executor/MainExec" ]; then
-        echo "!!!!!!!!!!!!!!!!!!!!! ERROR !!!!!!!!!!!!!!!!!!!!!!"
-        echo ""
-        echo "Project "BackupsScripts" was set up incorrectly."
-        echo "Please check the setup by following the instructions."
-        echo "-> File '$path_to_BackupScript/Executor/MainExec' not found."
-        echo ""
-        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        printf "%b" "$error_message"
         exit 1
 fi
 source $path_to_BackupScript/Executor/MainExec
-
 #################################################################################

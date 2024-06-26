@@ -58,13 +58,13 @@ done
 to_terminal() {
     # Send message to log and log file
     local msg="$1"
-    printf "$msg\n"
+    printf %b "$msg\n"
 }
 
 to_logfile() {
     # Send message to log and log file
     local msg="$1"
-    printf "$msg\n" >> "$log_file"
+    printf %b "$msg\n" >> "$log_file"
 }
 
 to_unraid_notification() {

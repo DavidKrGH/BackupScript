@@ -43,7 +43,6 @@ $NOTIFIER --timestamps "false"
 
 output=$(eval "$cmd" 2>&1)
 exit_code=$?
-output=${output//%/%%}
 $NOTIFIER --message "$output" --timestamps "false"
 
 ################################# Evaluation ################################
