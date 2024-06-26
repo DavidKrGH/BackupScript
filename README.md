@@ -66,7 +66,7 @@ To install and set up the project, please follow the steps below:
   - To automate backup tasks, the execution of the backup job must be scheduled. Under Unraid, the "User Scripts" application can be used for this purpose. Alternatively, a cron job can be created directly under Linux systems. Detailed instructions are provided for this.
 
 ### **1. Download the repository** ###
-- Download the entire repository and place all the directories and files it contains in a new directory named "BackupScript". Pay attention to the correct spelling of the directory name. The resulting folder structure is shown below. If the name of the root directory "BackupScript" is changed, this must be taken into account in the backup jobs under the variable "path_to_BackupScript" and in the Docker commands during setup. Do not change the naming or structure of the repository content unless you are explicitly asked to do so in the instructions. Place the filled "BackupScript" directory in a suitable location of your choice on your system.
+- Download the entire repository and place all the directories and files it contains in a new directory. The name "BackupScript" is recommended. If "BackupScript" is not selected as the name of the root directory, this must be taken into account in the Docker commands during setup. The resulting folder structure is shown below. Do not change the name or structure of the repository content unless you are explicitly requested to do so in the instructions. Place the filled "BackupScript" directory in a suitable location of your choice on your system.
 
 ```
 └── BackupScript
@@ -113,7 +113,6 @@ An overview of all the variables available is listed below with descriptions. It
 The most important variables to configure are:
 
 - `unique_job_name`: The name of the script or backup job. Must be unique as it is used to recognise whether the backup task is already running. Avoid spaces or underscores!
-- `path_to_BackupScript`: The path to the "BackupScript" directory containing the script and its utilities on your system.
 - `system_id_name`: The name used to identify your system in the snapshots.
 - `schedule_update_Restic_and_Rclone`: Schedule for the search for updates for Restic and Rclone. Examples: "never" "always" "weekly: Mon Thu Sat" "monthly: 7 21 28"
 - `notify_after_completion`: Option to send a notification after the job has been successfully executed. Options: "true" "false"
