@@ -81,15 +81,15 @@ To install and set up the project, please follow the steps below:
 ```
 
 ### **2. Setup backup repository** ###
-- A repository must be created before use. This is where the incremental backups are stored. You can add all backup jobs to the same repository or create a separate repository for each job. Restic [documentation] (https://restic.readthedocs.io/en/latest/) is used to create the backups. To create a repository, follow the instructions in "BackupScript > SetupInstruction > Create_Repository.txt".
+- A repository must be created before use. This is where the incremental backups are stored. You can add all backup jobs to the same repository or create a separate repository for each job. Restic [documentation](https://restic.readthedocs.io/en/latest/) is used to create the backups. To create a repository, follow the instructions in "BackupScript > SetupInstruction > Create_Repository.txt".
 
 ### **3. (Optional) Setup remote system** ###
-- To increase the security of the backups, the repository can be transferred to a remote system or cloud. Rclone [documentation] (https://rclone.org/docs/) is used for this purpose. Rclone offers a variety of options for connecting to a remote system or cloud. Before using a new connection for the first time, it must be configured according to the Rclone [documentation] (https://rclone.org/docs/#configure). If no remote backups are required, this step can be skipped. However, the schedule for Rclone in the backup job must then be set to "never". If you have decided to use a remote system, you can start the interactive setup process by following the instructions in "BackupScript > SetupInstruction > Create_Rclone_Config.txt". All information required for the setup process is provided by the Rclone documentation. Adding new connections or changing existing ones is possible at any time.
+- To increase the security of the backups, the repository can be transferred to a remote system or cloud. Rclone [documentation](https://rclone.org/docs/) is used for this purpose. Rclone offers a variety of options for connecting to a remote system or cloud. Before using a new connection for the first time, it must be configured according to the Rclone [documentation](https://rclone.org/docs/#configure). If no remote backups are required, this step can be skipped. However, the schedule for Rclone in the backup job must then be set to "never". If you have decided to use a remote system, you can start the interactive setup process by following the instructions in "BackupScript > SetupInstruction > Create_Rclone_Config.txt". All information required for the setup process is provided by the Rclone documentation. Adding new connections or changing existing ones is possible at any time.
 
 ### **4. Setup backup job** ###
 - New backup jobs are created by configuring a job. A pre-filled template is provided for this purpose. Create a copy of the "JobTemplate" file in the "BackupScript > Jobs" directory and give it a unique name (avoid using spaces and underscores). A description of the configuration of new jobs is given in the section [Usage](#usage). By copying the template, any number of jobs with different configurations can be created.
 
-### **4. (Optional) Setup notification** ###
+### **5. (Optional) Setup notification** ###
 - If important events occur during the execution of a script, a notification can be sent. This is already prepared for the unraid notification system. To activate this function, the script "BackupScript > Executor > Notifier" must be opened with an editor. Activation is done by removing the "#" at the beginning of line 100. "Notifier" is designed so that further interfaces for notifications can be added as functions. Implement the interfaces required for your needs and add the methods in the desired "Output Channel".
 
 ## Usage<a name="usage"></a>
@@ -136,7 +136,7 @@ The most important variables to configure are:
 ### Execution of the script ###
 
 To execute a backup job, the job must be given the necessary authorisation. To do this, follow the instructions "BackupScript > SetupInstruction > Setup_Job.txt".
-The "User Scripts" plugin can be used under Unraid to automate the execution of a backup job. Alternatively, every Linux system offers the option of setting up automation via a cron job. You can find detailed instructions here: [Cron-Jobs] (https://www.freecodecamp.org/news/cron-jobs-in-linux/). The backup job is then executed at the specified frequency.
+The "User Scripts" plugin can be used under Unraid to automate the execution of a backup job. Alternatively, every Linux system offers the option of setting up automation via a cron job. You can find detailed instructions here: [Cron-Jobs](https://www.freecodecamp.org/news/cron-jobs-in-linux/). The backup job is then executed at the specified frequency.
 
 ### Restore Data ###
 
