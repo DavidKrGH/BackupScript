@@ -24,15 +24,15 @@ message=""                                                                      
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --channel)
-            channel="$2"                        # evaluate or release
+            channel="$2"                        # normal or important
             shift 2
             ;;
         --message)
-            message="$2"                        # name of subprocess
+            message="$2"
             shift 2
             ;;
         --type)
-            type="$2"                           # running, lock or pulldate
+            type="$2"                           # Type of message "normal, warning"
             shift 2
             ;;
         --timestamps)

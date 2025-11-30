@@ -130,7 +130,7 @@ if [ "$task" == "evaluate" ] && [ "$type" == "execution" ]; then
     
     if [[ -f "$marker_file" ]]; then
         $NOTIFIER
-        $NOTIFIER --channel "important" --args "normal" --message "$JOB_NAME: Mark for 'execution' is already set"
+        $NOTIFIER --channel "important" --type "normal" --message "$JOB_NAME: Mark for 'execution' is already set"
         exit 99
         
     else
@@ -180,7 +180,7 @@ elif [ "$task" == "evaluate" ] && [ "$type" == "lock" ]; then
         $NOTIFIER --message "'never'"
         exit 1
     else
-        $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME decode schedule '$schedule' faild"
+        $NOTIFIER --channel "important" --type "warning" --message "ERROR: $JOB_NAME decode schedule '$schedule' failed"
         exit 1
     fi
     

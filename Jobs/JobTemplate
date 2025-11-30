@@ -30,7 +30,7 @@ path_to_restic_repository="/PATH/TO/REPO:rw,slave"                              
                                                                                 #
 name_restic_password_file="restic-repo.password"                                # Name of a password file in the path "BackupScript > Config > RepositoryPassword".
                                                                                 #
-restig_backup_tags="--tag FirstTag --tag SecondTag"                             # Tags to be applied to the backup snapshots.
+restic_backup_tags="--tag FirstTag --tag SecondTag"                             # Tags to be applied to the backup snapshots.
                                                                                 #
 name_restic_filter_file="DefaultResticFilter.txt"                               # Name of a configuration file in the path "BackupScript > Config > ResticFilter".
                                                                                 #

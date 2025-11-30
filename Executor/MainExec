@@ -135,7 +135,7 @@ fi
 ############### Backup
 
 if [[ "$evaluation" == 0 ]]; then
-    $ResticBackupExec "$system_id_name" "$restig_backup_tags" "$restic_options"
+    $ResticBackupExec "$system_id_name" "$restic_backup_tags" "$restic_options"
     backup_exit_code=$?
     exec_backup="X"
 fi
