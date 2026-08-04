@@ -1,3 +1,14 @@
+> [!WARNING]
+> **This project is deprecated and is no longer maintained.**
+>
+> It has been superseded by **[Dockkeep](https://github.com/DavidKrGH/Dockkeep)** —
+> scheduled Restic backups and Rclone syncs for your home server, in one
+> container with a web UI.
+>
+> This repository stays online for reference. It receives no further fixes,
+> and open issues will not be worked on.
+
+
 # BackupScript with Restic and Rclone
 
 ## Introduction
